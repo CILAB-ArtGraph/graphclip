@@ -89,3 +89,5 @@ target/
 .mypy_cache/
 
 .venv/
+
+src/visualization/*
