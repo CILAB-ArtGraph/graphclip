@@ -1,0 +1,7 @@
+dataset_path: data/raw/artgraph_style_dataset.csv
+label_column: style
+val_size: 0.2
+test_size: 0.1
+outdir: data/processed/normal/artgraph_clip
+stratification: True
+random_state: 42
