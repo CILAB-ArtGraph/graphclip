@@ -1,6 +1,6 @@
-from enum import Enum
+from src.utils import StrEnum
 
 
-class DataDict(Enum):
+class DataDict(StrEnum):
     IMAGE = "image"
     TEXT = "text"
