@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 from typing import Union, Any, Optional
 import pandas as pd
 from torchvision.transforms import Compose
-from src.data import DataDict
+from .utils import DataDict
 from PIL import Image
 import torch
 

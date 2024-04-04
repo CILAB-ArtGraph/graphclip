@@ -1,6 +1,1 @@
-from enum import Enum
-
-
-class DataDict(Enum):
-    IMAGE = "image"
-    TEXT = "text"
+from .image_text_dataset import ImageTextDatset
