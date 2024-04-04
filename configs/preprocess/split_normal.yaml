@@ -3,5 +3,7 @@ label_column: style
 val_size: 0.2
 test_size: 0.1
 outdir: data/processed/normal/artgraph_clip
+out_args:
+  index: False
 stratification: True
 random_state: 42

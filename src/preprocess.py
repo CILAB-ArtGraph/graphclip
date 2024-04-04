@@ -11,6 +11,7 @@ def preprocess_normal(
     outdir: str,
     stratification: bool=True,
     random_state: int = None,
+    out_args: dict = {},
     **kwargs,
 ):
     dataset = pd.read_csv(dataset_path, **kwargs)
@@ -23,6 +24,6 @@ def preprocess_normal(
     
     # SAVE
     os.makedirs(outdir, exist_ok=True)
-    train.to_csv(f"{outdir}/train.csv")
-    val.to_csv(f"{outdir}/val.csv")
-    test.to_csv(f"{outdir}/test.csv")
+    train.to_csv(f"{outdir}/train.csv", **out_args)
+    val.to_csv(f"{outdir}/val.csv", **out_args)
+    test.to_csv(f"{outdir}/test.csv", **out_args)
