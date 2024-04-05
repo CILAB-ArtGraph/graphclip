@@ -13,3 +13,12 @@ def main():
 def split(parameters):
     from src.preprocess import preprocess_normal
     preprocess_normal(**load_ruamel(parameters))
+    
+    
+@main.command("test")
+@click.option(
+    "--parameters", help="Path to parameters file"
+)
+def test(parameters):
+    from src.experiment import test_clip
+    test_clip(load_ruamel(parameters))

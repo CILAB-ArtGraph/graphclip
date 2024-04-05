@@ -6,10 +6,21 @@ import torch
 from typing import Any
 from torch.utils.data import DataLoader
 import torchmetrics
+from tqdm import tqdm
+
 
 class Run:
     def __init__(self, parameters):
         self.parameters = parameters
+
+    def get_bar(self, loader, desc):
+        if not self.parameters.get(ParameterKeys.BAR, False):
+            return loader
+        return tqdm(
+            enumerate(loader),
+            total=len(loader),
+            desc=desc,
+        )
 
     def _init_model(self) -> Any:
         models = src.models.__dict__
@@ -29,13 +40,12 @@ class Run:
         return dataset_types[dataset_name](**params.get(ParameterKeys.PARAMS, {}))
 
     def _init_loader(self, dataset, loader_params):
-        if not dataset:
+        loader_params_copy = deepcopy(loader_params)
+        if dataset is None:
             return None
-        return DataLoader(
-            dataset,
-            collate_fn=dataset.collate_fn if hasattr(dataset, "collate_fn") else None,
-            **loader_params
-        )
+        if hasattr(dataset, "collate_fn"):
+            loader_params_copy["collate_fn"] = dataset.collate_fn
+        return DataLoader(dataset, **loader_params)
 
     def _init_dataloaders(self):
         dataset_params = deepcopy(self.parameters[ParameterKeys.DATASET])
@@ -59,9 +69,7 @@ class Run:
     def _init_metrics(self):
         metrics_types = torchmetrics.__dict__
         metrics_params = deepcopy(self.parameters.get(ParameterKeys.METRICS))
-        return {
-            k: metrics_types[k](**v) for k, v in metrics_params.items()
-        }
+        return {k: metrics_types[k](**v) for k, v in metrics_params.items()}
 
     def train_epoch(self, epoch):
         raise NotImplementedError()

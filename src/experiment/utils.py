@@ -12,3 +12,7 @@ class ParameterKeys(StrEnum):
     VAL = "val"
     TEST = "test"
     METRICS = "metrics"
+    TOKENIZER = "tokenizer"
+    BAR = "bar"
+    DEVICE = "device"
+    OUT_DIR = "out_dir"
