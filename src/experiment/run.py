@@ -69,7 +69,7 @@ class Run:
     def _init_metrics(self):
         metrics_types = torchmetrics.__dict__
         metrics_params = deepcopy(self.parameters.get(ParameterKeys.METRICS))
-        return {k: metrics_types[k](**v) for k, v in metrics_params.items()}
+        return {k: metrics_types[v.get(ParameterKeys.NAME)](**v.get(ParameterKeys.PARAMS)) for k, v in metrics_params.items()}
 
     def train_epoch(self, epoch):
         raise NotImplementedError()

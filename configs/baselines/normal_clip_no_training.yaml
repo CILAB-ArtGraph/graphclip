@@ -26,13 +26,24 @@ model:
 tokenizer: 
   model_name: *vit
 metrics:
-  Accuracy:
-    task: &task multiclass
-    num_classes: 32
-  F1Score:
-    task: *task
-    num_classes: 32
-    average: macro
+  top1:
+    name: Accuracy
+    params:
+      task: &task multiclass
+      num_classes: 32
+      top_k: 1
+  top2:
+    name: Accuracy
+    params:
+      task: *task
+      num_classes: 32
+      top_k: 2
+  f1score:
+    name: F1Score
+    params:
+      task: *task
+      num_classes: 32
+      average: macro
 bar: True
 out_dir: models/normal_clip_no_training
 

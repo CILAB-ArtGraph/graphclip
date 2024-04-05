@@ -7,7 +7,6 @@ def test_clip(parameters):
     test_metrics = CLIPRun(parameters).test()
     
     print(test_metrics)
-    exit()
     out_dir = parameters.get(ParameterKeys.OUT_DIR)
     os.makedirs(out_dir, exist_ok=True)
     
