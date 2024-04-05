@@ -5,16 +5,18 @@ dataset:
       dataset: data/processed/normal/artgraph_clip/test.csv
       img_dir: data/raw/images-resized
       preprocess: 
-        Resize:
-          size: 224
-          interpolation: 3
-          antialias: True
-        CenterCrop:
-          size: [224, 224]
-        ToTensor: None
-        Normalize:
-          mean: [0.48145466, 0.4578275, 0.40821073]
-          std: [0.26862954, 0.26130258, 0.27577711]
+        name: Compose
+        params:
+          Resize:
+            size: 224
+            interpolation: 3
+            antialias: True
+          CenterCrop:
+            size: [224, 224]
+          ToTensor: None
+          Normalize:
+            mean: [0.48145466, 0.4578275, 0.40821073]
+            std: [0.26862954, 0.26130258, 0.27577711]
 dataloader:
   batch_size: 128
   num_workers: 8

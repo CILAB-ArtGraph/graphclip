@@ -7,6 +7,7 @@ from PIL import Image
 import torch
 from torchvision.transforms import Compose
 import torchvision.transforms
+from open_clip import create_model_and_transforms
 
 
 class ImageTextDatset(Dataset):
@@ -14,7 +15,7 @@ class ImageTextDatset(Dataset):
         self,
         dataset: Union[str, pd.DataFrame],
         img_dir: str,
-        preprocess: Optional[Union[Compose, dict]] = None,
+        preprocess: Optional[Union[Compose, dict, str]] = None,
         **kwargs,
     ):
         super().__init__()
@@ -27,11 +28,15 @@ class ImageTextDatset(Dataset):
             return None
         if isinstance(preprocess, Compose):
             return preprocess
+        if preprocess.get("name").lower() == 'clip':
+            return create_model_and_transforms(**preprocess.get("params"))[2]
+        
+        assert preprocess.get("name").lower() == "compose"
         prep_types = torchvision.transforms.__dict__
         return Compose(
             [
                 prep_types[k](**(v if isinstance(v, dict) else {}))
-                for k, v in preprocess.items()
+                for k, v in preprocess.get("params").items()
             ]
         )
 
