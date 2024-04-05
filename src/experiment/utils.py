@@ -16,3 +16,6 @@ class ParameterKeys(StrEnum):
     BAR = "bar"
     DEVICE = "device"
     OUT_DIR = "out_dir"
+    DESCRIPTION_SOURCE = "source"
+    KEY = "key"
+    CLASS_SOURCE = "class_source"

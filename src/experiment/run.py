@@ -15,7 +15,7 @@ class Run:
 
     def get_bar(self, loader, desc):
         if not self.parameters.get(ParameterKeys.BAR, False):
-            return loader
+            return enumerate(loader)
         return tqdm(
             enumerate(loader),
             total=len(loader),

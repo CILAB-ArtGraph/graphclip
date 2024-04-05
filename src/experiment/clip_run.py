@@ -6,6 +6,7 @@ from .utils import ParameterKeys
 from copy import deepcopy
 import torch
 from src.data import DataDict
+import pandas as pd
 
 
 class CLIPRun(Run):
@@ -22,12 +23,21 @@ class CLIPRun(Run):
     def _init_tokenizer(self) -> SimpleTokenizer:
         return get_tokenizer(**self.parameters.get(ParameterKeys.TOKENIZER, {}))
 
-    def get_class_maps(self, classes):
+    def get_prompts(
+        self, classes: list[str], source: str = None, key: str = None
+    ) -> list[str]:
+        if not source:
+            return [f"This artwork is in {x} artistic style" for x in classes]
+        key = key if key else "style"
+        styles = pd.read_csv(source).set_index(key)
+        return [styles.loc[x].summary for x in classes]
+
+    def get_class_maps(self, classes, source: str = None, key: str = None):
         classes = list(sorted(list(set(deepcopy(classes)))))
         idx2class = {ix: s for ix, s in enumerate(classes)}
         class2idx = {s: ix for ix, s in idx2class.items()}
 
-        class_prompts = [f"This artwork is in {x} artistic style" for x in classes]
+        class_prompts = self.get_prompts(classes=classes, source=source, key=key)
 
         return class_prompts, idx2class, class2idx
 
@@ -40,8 +50,12 @@ class CLIPRun(Run):
         device = self.parameters.get(ParameterKeys.DEVICE, "cpu")
         self.model = self.model.to(device)
         classes = self.get_classes_for_test()
-        class_prompts, idx2class, class2idx = self.get_class_maps(classes)
-        
+        class_source = self.parameters.get(ParameterKeys.CLASS_SOURCE, None)
+        class_key = self.parameters.get(ParameterKeys.KEY, None)
+        class_prompts, idx2class, class2idx = self.get_class_maps(
+            classes, source=class_source, key=class_key
+        )
+
         print(f"Having {len(classes)} classes")
         class_tokens = self.tokenizer(class_prompts).to(device)
 
@@ -49,22 +63,18 @@ class CLIPRun(Run):
         class_feats /= class_feats.norm(dim=-1, keepdim=True)
 
         bar = self.get_bar(self.test_loader, desc="Test")
-        
+
         metrics = deepcopy(self.metrics)
-        
+
         for ix, data_dict in bar:
             imgs = data_dict[DataDict.IMAGE].to(device)
-            txts = data_dict[DataDict.TEXT] 
+            txts = data_dict[DataDict.TEXT]
             labels = torch.as_tensor(list(map(lambda x: class2idx[x], txts))).float()
             img_feats = self.model.encode_image(imgs)
             img_feats /= img_feats.norm(dim=-1, keepdim=True)
-            
+
             out = img_feats @ class_feats.T
             out = out.detach().cpu()
             for m in metrics:
                 metrics[m].update(out, labels)
-        return {
-            k: v.compute().cpu().item() for k, v in metrics.items()
-        }
-
-        
+        return {k: v.compute().cpu().item() for k, v in metrics.items()}
