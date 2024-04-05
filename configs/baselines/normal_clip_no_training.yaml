@@ -49,5 +49,3 @@ metrics:
 bar: True
 device: cuda
 out_dir: models/normal_clip_no_training
-class_source: data/processed/styles.csv
-key: style
