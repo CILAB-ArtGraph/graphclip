@@ -38,6 +38,7 @@ class CLIPRun(Run):
     @torch.no_grad()
     def test(self) -> dict[str, float]:
         device = self.parameters.get(ParameterKeys.DEVICE, "cpu")
+        self.model = self.model.to(device)
         classes = self.get_classes_for_test()
         class_prompts, idx2class, class2idx = self.get_class_maps(classes)
         
@@ -59,7 +60,7 @@ class CLIPRun(Run):
             img_feats /= img_feats.norm(dim=-1, keepdim=True)
             
             out = img_feats @ class_feats.T
-            out.detach().cpu()
+            out = out.detach().cpu()
             for m in metrics:
                 metrics[m].update(out, labels)
         return {
