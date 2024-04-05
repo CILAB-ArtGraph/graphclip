@@ -92,4 +92,4 @@ target/
 
 src/visualization/*
 
-models
+models/*
