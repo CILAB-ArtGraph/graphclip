@@ -91,3 +91,5 @@ target/
 .venv/
 
 src/visualization/*
+
+models
