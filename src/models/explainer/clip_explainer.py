@@ -7,6 +7,7 @@ from torch.nn import functional as F
 from .gradcam import apply_gradcam, visualize_gradcam, GradCAM
 from typing import Union
 from torchvision.transforms import Compose
+from .textgrad import interpret_sentence
 
 
 def text_global_pool(x, text: torch.Tensor = None, pool_type: str = "argmax"):
@@ -102,7 +103,9 @@ class CLIPExplainer(AbstractExplainer):
     def _get_image_preprocess(self, image_preprocess: Union[str, Compose]) -> Compose:
         if isinstance(image_preprocess, Compose):
             return image_preprocess
-        return create_model_and_transforms("ViT-B-32", pretrained="laion2b_s34b_b79k")[2]
+        return create_model_and_transforms("ViT-B-32", pretrained="laion2b_s34b_b79k")[
+            2
+        ]
 
     def _get_tokenizer(self, tokenizer: Union[str, SimpleTokenizer]) -> SimpleTokenizer:
         if isinstance(tokenizer, SimpleTokenizer):
@@ -136,8 +139,23 @@ class CLIPExplainer(AbstractExplainer):
             else visualize_gradcam(image_path=img_path, gweights=cam)
         )
 
-    def explain_text(self):
-        pass
+    def explain_text(
+        self,
+        model: CLIP,
+        text: str,
+        image_reference_feats: torch.Tensor,
+        plot: bool = False,
+    ):
+        text_wrap_model = TextualWrapperForExplanation(
+            model=model, image_reference_feat=image_reference_feats
+        )
+        return interpret_sentence(
+            model=text_wrap_model,
+            sentence=text,
+            tokenizer=self.tokenizer,
+            device=self.device,
+            plot=plot,
+        )
 
     def explain_graph(self, graph: Data | HeteroData, other: torch.Any):
         raise NotImplementedError("Information modality not supported by CLIP!!")
