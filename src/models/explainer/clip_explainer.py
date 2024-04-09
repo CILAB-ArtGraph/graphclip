@@ -1,19 +1,20 @@
 from torch_geometric.data import Data, HeteroData
 from .abstract_explainer import AbstractExplainer
 import torch
-from open_clip import CLIP
-from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
-from einops import rearrange
+from open_clip import CLIP, SimpleTokenizer, get_tokenizer, create_model_and_transforms
 from torch import nn
 from torch.nn import functional as F
+from .gradcam import apply_gradcam, visualize_gradcam, GradCAM
+from typing import Union
+from torchvision.transforms import Compose
 
 
-def text_global_pool(x, text: torch.Tensor = None, pool_type: str = 'argmax'):
-    if pool_type == 'first':
+def text_global_pool(x, text: torch.Tensor = None, pool_type: str = "argmax"):
+    if pool_type == "first":
         pooled, tokens = x[:, 0], x[:, 1:]
-    elif pool_type == 'last':
+    elif pool_type == "last":
         pooled, tokens = x[:, -1], x[:, :-1]
-    elif pool_type == 'argmax':
+    elif pool_type == "argmax":
         # take features from the eot embedding (eot_token is the highest number in each sequence)
         assert text is not None
         pooled, tokens = x[torch.arange(x.shape[0]), text.argmax(dim=-1)], x
@@ -28,7 +29,8 @@ class VisualWrapperForExplanation(torch.nn.Module):
         super().__init__()
         self.backbone = model
         self.fake_head = torch.nn.Linear(
-            in_features=text_reference_feat.size(1), out_features=text_reference_feat.size(0)
+            in_features=text_reference_feat.size(1),
+            out_features=text_reference_feat.size(0),
         )
         text_p = text_reference_feat.clone().detach().cpu()
         self.fake_head.weight = torch.nn.Parameter(
@@ -43,7 +45,7 @@ class VisualWrapperForExplanation(torch.nn.Module):
 class TextualWrapperForExplanation(torch.nn.Module):
     def __init__(self, model: CLIP, image_reference_feat: torch.Tensor) -> None:
         super().__init__()
-        
+
         self.transformer = model.transformer
         self.token_embedding = model.token_embedding
         self.positional_embedding = model.positional_embedding
@@ -51,14 +53,14 @@ class TextualWrapperForExplanation(torch.nn.Module):
         self.ln_final = model.ln_final
         self.attn_mask = model.attn_mask
         self.text_pool_type = model.text_pool_type
-        
+
         self.fake_head = torch.nn.Linear(
             in_features=image_reference_feat.size(0), out_features=1
         )
         self.fake_head.weight = torch.nn.Parameter(
             data=image_reference_feat.clone().detach().cpu()
         )
-        
+
     def encode_text(self, text, normalize: bool = False):
         cast_dtype = self.transformer.get_cast_dtype()
 
@@ -83,24 +85,60 @@ class TextualWrapperForExplanation(torch.nn.Module):
         return self.fake_head(x)
 
 
-# TODO: update
 class CLIPExplainer(AbstractExplainer):
-    "Per le immagini serve un'implementazione dignitosa di GRAD-Cam"
-    "Per il testo anche"
-    def __init__(self, visual_explainer_cls, text_explainer_cls) -> None:
+    def __init__(
+        self,
+        device: str = "cuda",
+        image_preprocess: Union[str, Compose] = "clip",
+        tokenizer: Union[str, SimpleTokenizer] = "clip",
+    ) -> None:
         super().__init__()
-        self.visual_explainer_cls = visual_explainer_cls
-        self.text_explainer_cls = text_explainer_cls
+        self.device = device
+        self.image_preprocess = self._get_image_preprocess(
+            image_preprocess=image_preprocess
+        )
+        self.tokenizer = self._get_tokenizer(tokenizer=tokenizer)
 
-    def explain_image(self, backbone: CLIP, target_layers: list[str], img: torch.Tensor, text_reference: torch.Tensor, target: int, **kwargs):
-        visual_wrapper = VisualWrapperForExplanation(model=backbone, text_reference_feat=text_reference).to('cuda')
-        target_layers = [visual_wrapper.backbone.visual.transformer.resblocks[-1].ln_1]
-        # target_layers = [getattr(visual_wrapper, x) for x in target_layers]
-        visual_exp = self.visual_explainer_cls(visual_wrapper, target_layers, **kwargs)
-        targets = None if not target else [ClassifierOutputTarget(target)]
-        return visual_exp(img, targets)
+    def _get_image_preprocess(self, image_preprocess: Union[str, Compose]) -> Compose:
+        if isinstance(image_preprocess, Compose):
+            return image_preprocess
+        return create_model_and_transforms("ViT-B-32", pretrained="laion2b_s34b_b79k")[
+            2
+        ]
 
-    def explain_text(self, tokens: torch.Tensor, other: torch.Any):
+    def _get_tokenizer(self, tokenizer: Union[str, SimpleTokenizer]) -> SimpleTokenizer:
+        if isinstance(tokenizer, SimpleTokenizer):
+            return tokenizer
+        return get_tokenizer("ViT-B-32")
+
+    def explain_image(
+        self,
+        img_path: str,
+        model: CLIP,
+        text_reference_feats: torch.Tensor,
+        target: int,
+        overlayed: bool = True,
+    ):
+        # apply gradcam to the image
+        vis_wrap_model = VisualWrapperForExplanation(
+            model=model, text_reference_feat=text_reference_feats
+        ).to(self.device)
+        gradcam = GradCAM(model=vis_wrap_model)
+        cam = apply_gradcam(
+            image_path=img_path,
+            preprocess=self.image_preprocess,
+            model=vis_wrap_model,
+            gradcam=gradcam,
+            target=target,
+            device=self.device,
+        )
+        return (
+            cam
+            if not overlayed
+            else visualize_gradcam(image_path=img_path, gweights=cam)
+        )
+
+    def explain_text(self):
         pass
 
     def explain_graph(self, graph: Data | HeteroData, other: torch.Any):
