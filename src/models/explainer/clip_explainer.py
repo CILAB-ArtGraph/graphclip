@@ -102,9 +102,7 @@ class CLIPExplainer(AbstractExplainer):
     def _get_image_preprocess(self, image_preprocess: Union[str, Compose]) -> Compose:
         if isinstance(image_preprocess, Compose):
             return image_preprocess
-        return create_model_and_transforms("ViT-B-32", pretrained="laion2b_s34b_b79k")[
-            2
-        ]
+        return create_model_and_transforms("ViT-B-32", pretrained="laion2b_s34b_b79k")[2]
 
     def _get_tokenizer(self, tokenizer: Union[str, SimpleTokenizer]) -> SimpleTokenizer:
         if isinstance(tokenizer, SimpleTokenizer):
