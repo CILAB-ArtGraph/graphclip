@@ -24,3 +24,7 @@ class ParameterKeys(StrEnum):
     SCHEDULER = "scheduler"
     EARLY_STOP = "early_stop"
     PATH = "path"
+    CPU_DEVICE = "cpu"
+    DEF_OUT_DIR = "./"
+    WARMUP_EPOCHS = "warmup"
+    DEF_WARMUP_EPOCHS = 5

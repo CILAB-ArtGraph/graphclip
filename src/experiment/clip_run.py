@@ -17,9 +17,13 @@ class CLIPRun(Run):
         self.init()
 
     def init(self):
+        # init dataloaders
         self.train_loader, self.val_loader, self.test_loader = self._init_dataloaders()
+        # init clip model
         self.model = self._init_model()
+        # init metrics
         self.metrics = self._init_metrics()
+        # init tokenizer
         self.tokenizer = self._init_tokenizer()
         # init loss
         self.loss = self._init_loss()
@@ -29,7 +33,6 @@ class CLIPRun(Run):
         self.scheduler = self._init_scheduler()
         # init early stop
         self.early_stop = self._init_early_stop()
-
         # init other parameters
         self._init_general()
 
@@ -83,7 +86,16 @@ class CLIPRun(Run):
         return early_stop.__dict__[early_stop_name](**early_stop_params)
 
     def _init_general(self):
-        pass
+        self.device = self.parameters.get(
+            ParameterKeys.DEVICE, ParameterKeys.CPU_DEVICE
+        )
+        self.out_dir = self.parameters.get(
+            ParameterKeys.OUT_DIR, ParameterKeys.DEF_OUT_DIR
+        )
+        self.warmup_lblock_epochs = self.parameters.get(
+            ParameterKeys.WARMUP_EPOCHS, ParameterKeys.DEF_WARMUP_EPOCHS
+        )
+        
 
     def get_prompts(
         self, classes: list[str], source: str = None, key: str = None
@@ -109,8 +121,7 @@ class CLIPRun(Run):
 
     @torch.no_grad()
     def test(self) -> dict[str, float]:
-        device = self.parameters.get(ParameterKeys.DEVICE, "cpu")
-        self.model = self.model.to(device)
+        self.model = self.model.to(self.device)
         classes = self.get_classes_for_test()
         class_source = self.parameters.get(ParameterKeys.CLASS_SOURCE, None)
         class_key = self.parameters.get(ParameterKeys.KEY, None)
@@ -119,7 +130,7 @@ class CLIPRun(Run):
         )
 
         print(f"Having {len(classes)} classes")
-        class_tokens = self.tokenizer(class_prompts).to(device)
+        class_tokens = self.tokenizer(class_prompts).to(self.device)
 
         class_feats = self.model.encode_text(class_tokens)
         class_feats /= class_feats.norm(dim=-1, keepdim=True)
@@ -129,7 +140,7 @@ class CLIPRun(Run):
         metrics = deepcopy(self.metrics)
 
         for ix, data_dict in bar:
-            imgs = data_dict[DataDict.IMAGE].to(device)
+            imgs = data_dict[DataDict.IMAGE].to(self.device)
             txts = data_dict[DataDict.TEXT]
             labels = torch.as_tensor(list(map(lambda x: class2idx[x], txts))).float()
             img_feats = self.model.encode_image(imgs)
