@@ -71,6 +71,9 @@ class Run:
         metrics_params = deepcopy(self.parameters.get(ParameterKeys.METRICS))
         return {k: metrics_types[v.get(ParameterKeys.NAME)](**v.get(ParameterKeys.PARAMS)) for k, v in metrics_params.items()}
 
+    def launch(self):
+        raise NotImplementedError()
+
     def train_epoch(self, epoch):
         raise NotImplementedError()
 
