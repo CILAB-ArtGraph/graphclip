@@ -7,15 +7,23 @@ from copy import deepcopy
 import torch
 from src.data import DataDict
 import pandas as pd
+import src.loss as losses
 
 
 class CLIPRun(Run):
     def __init__(self, parameters):
         super().__init__(parameters)
+        self.init()
+
+    def init(self):
         self.train_loader, self.val_loader, self.test_loader = self._init_dataloaders()
         self.model = self._init_model()
         self.metrics = self._init_metrics()
         self.tokenizer = self._init_tokenizer()
+        # init loss
+        # init optimizer
+        # init scheduler
+        # init early stop 
 
     def _init_model(self) -> CLIP:
         return create_model(**self.parameters.get(ParameterKeys.MODEL))
@@ -23,6 +31,15 @@ class CLIPRun(Run):
     def _init_tokenizer(self) -> SimpleTokenizer:
         return get_tokenizer(**self.parameters.get(ParameterKeys.TOKENIZER, {}))
 
+    def _init_loss(self) -> torch.nn.Module:
+        pass
+    
+    def _init_optimizer(self) -> torch.optim.Optimizer:
+        pass
+    
+    def _init_scheduler(self) -> torch.optim.lr_scheduler.LRScheduler:
+        pass
+    
     def get_prompts(
         self, classes: list[str], source: str = None, key: str = None
     ) -> list[str]:

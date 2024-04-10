@@ -19,3 +19,7 @@ class ParameterKeys(StrEnum):
     DESCRIPTION_SOURCE = "source"
     KEY = "key"
     CLASS_SOURCE = "class_source"
+    LOSS = "loss"
+    OPTIMIZER = "optimizer"
+    SCHEDULER = "scheduler"
+    EARLY_STOP = "early_stop"
