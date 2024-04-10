@@ -8,6 +8,7 @@ import torch
 from src.data import DataDict
 import pandas as pd
 import src.loss as losses
+from src.utils import early_stop
 
 
 class CLIPRun(Run):
@@ -21,9 +22,16 @@ class CLIPRun(Run):
         self.metrics = self._init_metrics()
         self.tokenizer = self._init_tokenizer()
         # init loss
+        self.loss = self._init_loss()
         # init optimizer
+        self.optimizer = self._init_optimizer()
         # init scheduler
-        # init early stop 
+        self.scheduler = self._init_scheduler()
+        # init early stop
+        self.early_stop = self._init_early_stop()
+
+        # init other parameters
+        self._init_general()
 
     def _init_model(self) -> CLIP:
         return create_model(**self.parameters.get(ParameterKeys.MODEL))
@@ -32,14 +40,51 @@ class CLIPRun(Run):
         return get_tokenizer(**self.parameters.get(ParameterKeys.TOKENIZER, {}))
 
     def _init_loss(self) -> torch.nn.Module:
-        pass
-    
+        params = deepcopy(self.parameters.get(ParameterKeys.LOSS), None)
+        if not params:
+            return None
+        loss_name = params.get(ParameterKeys.NAME)
+        loss_params = params.get(ParameterKeys.PARAMS, {})
+        return losses.__dict__[loss_name](**loss_params)
+
     def _init_optimizer(self) -> torch.optim.Optimizer:
-        pass
-    
+        assert self.model is not None, "Please first initialize the model!!"
+        params = deepcopy(self.parameters.get(ParameterKeys.OPTIMIZER), None)
+        if not params:
+            return None
+        opt_name = params.get(ParameterKeys.NAME)
+        opt_params = params.get(ParameterKeys.PARAMS, {})
+        return torch.optim.__dict__[opt_name](
+            parameters=self.model.parameters(), **opt_params
+        )
+
     def _init_scheduler(self) -> torch.optim.lr_scheduler.LRScheduler:
+        assert self.optimizer is not None or (
+            not self.parameters.get(ParameterKeys.OPTIMIZER),
+            None,
+        ), "Please first initialize the model!!"
+        params = deepcopy(self.parameters.get(ParameterKeys.SCHEDULER), None)
+        if not params:
+            return None
+        scheduler_name = params.get(ParameterKeys.NAME)
+        scheduler_params = params.get(ParameterKeys.PARAMS)
+        return torch.optim.lr_scheduler.__dict__[scheduler_name](**scheduler_params)
+
+    def _init_early_stop(self):
+        params = deepcopy(self.parameters.get(ParameterKeys.EARLY_STOP), None)
+        if not params:
+            return None
+        early_stop_name = params.get(ParameterKeys.NAME)
+        early_stop_params = params.get(ParameterKeys.PARAMS)
+        model_state_dict_path = (
+            f"{self.parameters.get(ParameterKeys.OUT_DIR)}/{ParameterKeys.MODEL}.pt"
+        )
+        early_stop_params.update({ParameterKeys.PATH: model_state_dict_path})
+        return early_stop.__dict__[early_stop_name](**early_stop_params)
+
+    def _init_general(self):
         pass
-    
+
     def get_prompts(
         self, classes: list[str], source: str = None, key: str = None
     ) -> list[str]:

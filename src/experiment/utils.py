@@ -23,3 +23,4 @@ class ParameterKeys(StrEnum):
     OPTIMIZER = "optimizer"
     SCHEDULER = "scheduler"
     EARLY_STOP = "early_stop"
+    PATH = "path"
