@@ -9,6 +9,7 @@ from torchvision.transforms import Compose
 import torchvision.transforms
 from open_clip import create_model_and_transforms
 import nlpaug.augmenter.word as naw
+from copy import deepcopy
 
 
 class ImageTextDatset(Dataset):
@@ -69,7 +70,10 @@ class CLIPDataset(ImageTextDatset):
         **kwargs,
     ):
         super().__init__(dataset, img_dir, preprocess, **kwargs)
-        self.style = self._init_dataset(dataset=styles, **kwargs)
+        self.styles = self._init_dataset(dataset=styles, **kwargs)
+        self.idx2style = {k: v for k, v in self.styles[DataDict.STYLE].items()}
+        self.style2idx = {v: k for k, v in self.idx2style.items()}
+        self.preprocess_cls = self._init_cls_preprocess(preprocess_classes)
 
     def _init_cls_preprocess(self, cls_preprocess: Optional[dict] = None) -> list:
         if not cls_preprocess:
@@ -81,10 +85,41 @@ class CLIPDataset(ImageTextDatset):
         return out
     
     def augment_texts(self, texts: list[str]) -> list[str]:
-        pass
+        if not self.preprocess_cls:
+            return texts
+        aug_txt = deepcopy(texts)
+        for aug in self.preprocess_cls:
+            aug_txt = aug(aug_txt)
+        return aug_txt
 
     def collate_fn(self, batched_input: list[dict[str, Any]]) -> dict[str, Any]:
-        pass
+        # INPUT -> (images, texts)
+        # OUTPUT -> (images, texts, gts)
+        images = [x[DataDict.IMAGE] for x in batched_input]
+        classes = [x[DataDict.TEXT] for x in batched_input]
+        
+        # collect images
+        batch_images = torch.stack(images)
+        
+        # collate texts
+        classes_idxs = [self.style2idx[x] for x in classes]
+        unique_classes = list(set(classes_idxs))
+        class2batch = {v: k for k, v in enumerate(unique_classes)}
+        
+        # get summaries
+        summaries = self.styles.loc[unique_classes, DataDict.SUMMARY].tolist()
+        
+        # augment summaries
+        aug_summaries = self.augment_texts(summaries)
+        
+        # get gts
+        gts = torch.as_tensor([class2batch[x] for x in classes_idxs]).float()
+        
+        return {
+            DataDict.IMAGE: batch_images,
+            DataDict.TEXT: aug_summaries,
+            DataDict.GTS: gts,
+        }
 
 
 if __name__ == "__main__":

@@ -5,3 +5,5 @@ class DataDict(StrEnum):
     IMAGE = "image"
     TEXT = "text"
     GTS = "gts"
+    STYLE = "style"
+    SUMMARY = "summary"
