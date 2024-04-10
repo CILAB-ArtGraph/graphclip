@@ -96,6 +96,17 @@ class CLIPRun(Run):
             ParameterKeys.WARMUP_EPOCHS, ParameterKeys.DEF_WARMUP_EPOCHS
         )
         
+        
+    def train_epoch(self, epoch):
+        pass
+    
+    @torch.no_grad()
+    def validate_epoch(self, epoch):
+        pass
+    
+    def launch(self):
+        pass
+    
 
     def get_prompts(
         self, classes: list[str], source: str = None, key: str = None
