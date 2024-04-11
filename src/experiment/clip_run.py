@@ -169,7 +169,7 @@ class CLIPRun(Run):
                     f"Epoch {epoch}/{self.num_epochs}: {phase} {k}: {metric_value.item():.4f}"
                 )
 
-    def early_stop(self, cumulated_loss: float) -> bool:
+    def early_stop_callback(self, cumulated_loss: float) -> bool:
         if not self.early_stop:
             return False
         self.early_stop(cumulated_loss, self.model)
@@ -243,14 +243,14 @@ class CLIPRun(Run):
             self.schedule(ParameterKeys.VALIDATION)
 
         # early stop
-        self.trigger = self.early_stop(cumulated_loss=cumulated_loss)
+        self.trigger = self.early_stop_callback(cumulated_loss=cumulated_loss)
 
         # end epoch validation
-        cumulated_loss = cumulated_loss.cpu().item() / len(self.train_loader)
+        cumulated_loss = cumulated_loss / len(self.val_loader)
         self.print_stats(
             epoch=epoch,
             cumulated_loss=cumulated_loss,
-            phase=ParameterKeys.TRAINING,
+            phase=ParameterKeys.VALIDATION,
         )
 
     def set_model_parameters_for_warmup(self, current_epoch: int) -> None:
