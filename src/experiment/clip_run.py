@@ -25,47 +25,47 @@ class CLIPRun(Run):
         print("Loading general parameters...")
         self._init_general()
         print("Done!")
-        
+
         # init dataloaders
         print("Loading dataloaders...")
         self.train_loader, self.val_loader, self.test_loader = self._init_dataloaders()
         print("Done!")
-        
+
         # init clip model
         print("Loading model...")
         self.model = self._init_model()
         print("Done!")
-        
+
         # init metrics
         print("Loading metrics...")
         self.metrics = self._init_metrics()
         print("Done!")
-        
+
         # init tokenizer
         print("Loading tokenizer...")
         self.tokenizer = self._init_tokenizer()
         print("Done!")
-        
+
         # init loss
         print("Loading criterion...")
         self.criterion = self._init_criterion()
         print("Done!")
-        
+
         # init optimizer
         print("Loading optimizer...")
         self.optimizer = self._init_optimizer()
         print("Done!")
-        
+
         # init scheduler
         print("Loading scheduler...")
         self.scheduler = self._init_scheduler()
         print("Done!")
-        
+
         # init early stop
         print("Loading early stop callback...")
         self.early_stop = self._init_early_stop()
         print("Done!")
-    
+
     def _init_model(self) -> CLIP:
         return create_model(**self.parameters.get(ParameterKeys.MODEL))
 
@@ -195,7 +195,7 @@ class CLIPRun(Run):
             loss.backward()
             self.optimizer.step()
             batch_loss = loss.cpu().item()
-            
+
             # update stats
             cumulated_loss = cumulated_loss + batch_loss
             self.update_bar(bar=bar, loss=batch_loss)
@@ -294,11 +294,20 @@ class CLIPRun(Run):
         dataset = self.test_loader.dataset
         return dataset.dataset[dataset.dataset.columns[-1]].unique().tolist()
 
+    def load_state_dict(self):
+        if os.path.exists(f"{ParameterKeys.OUT_DIR}/{ParameterKeys.MODEL}.pt"):
+            state_dict = torch.load(
+                f"{ParameterKeys.OUT_DIR}/{ParameterKeys.MODEL}.pt",
+                map_location=self.device,
+            )
+            self.model.load_state_dict(state_dict=state_dict)
+
     @torch.no_grad()
     def test(self) -> dict[str, float]:
         # check for test loader
         if not self.test_loader:
             return {}
+        self.load_state_dict()
         self.model = self.model.to(self.device)
         classes = self.get_classes_for_test()
         class_source = self.parameters.get(ParameterKeys.CLASS_SOURCE, None)
