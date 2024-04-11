@@ -22,3 +22,11 @@ def split(parameters):
 def test(parameters):
     from src.experiment import test_clip
     test_clip(load_ruamel(parameters))
+    
+@main.command("experiment")
+@click.option(
+    "--parameters", help="Path to parameters file"
+)
+def experiment(parameters):
+    from src.experiment import fine_tune_clip
+    fine_tune_clip(load_ruamel(parameters))
