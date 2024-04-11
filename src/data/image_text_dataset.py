@@ -113,7 +113,7 @@ class CLIPDataset(ImageTextDatset):
         aug_summaries = self.augment_texts(summaries)
         
         # get gts
-        gts = torch.as_tensor([class2batch[x] for x in classes_idxs]).float()
+        gts = torch.as_tensor([class2batch[x] for x in classes_idxs])#.float()
         
         return {
             DataDict.IMAGE: batch_images,
