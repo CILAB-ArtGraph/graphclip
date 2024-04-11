@@ -19,7 +19,7 @@ class ParameterKeys(StrEnum):
     DESCRIPTION_SOURCE = "source"
     KEY = "key"
     CLASS_SOURCE = "class_source"
-    LOSS = "loss"
+    CRITERION = "criterion"
     OPTIMIZER = "optimizer"
     SCHEDULER = "scheduler"
     EARLY_STOP = "early_stop"
@@ -27,4 +27,9 @@ class ParameterKeys(StrEnum):
     CPU_DEVICE = "cpu"
     DEF_OUT_DIR = "./"
     WARMUP_EPOCHS = "warmup"
-    DEF_WARMUP_EPOCHS = 5
+    DEF_WARMUP_EPOCHS = 0
+    NUM_EPOCHS = "num_epochs"
+    LOSS = "loss"
+    HUGGINGFACE_COS_SCHEDULER = "HuggingFaceCosineScheduler"
+    TRAINING = "training"
+    VALIDATION = "validation"
