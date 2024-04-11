@@ -192,7 +192,6 @@ class CLIPRun(Run):
             print(out)
             print(gts.size())
             input()
-            # TODO: change in parameters the criterion
             loss_out = self.criterion(out, gts)
             loss = loss_out["loss"]
             loss.backward()
