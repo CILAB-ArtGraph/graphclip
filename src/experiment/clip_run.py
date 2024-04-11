@@ -177,8 +177,6 @@ class CLIPRun(Run):
             loader=self.train_loader,
             desc=f"{ParameterKeys.TRAINING} at epoch {epoch}/{self.num_epochs}",
         )
-        # watch metrics
-        train_metrics = deepcopy(self.metrics) if self.metrics else None
 
         self.model.train()
         for ix, data_dict in bar:
@@ -189,36 +187,27 @@ class CLIPRun(Run):
 
             self.optimizer.zero_grad()
             out = self.model(image=images, text=text_tokens)
-            print(out)
-            print(gts.size())
-            input()
+            # print(out)
+            # print(gts.size())
+            # input()
             loss_out = self.criterion(out, gts)
             loss = loss_out["loss"]
             loss.backward()
             self.optimizer.step()
             batch_loss = loss.cpu().item()
-
-            print(loss_out["logits"].size())
-            print(gts.size())
-            input()
             
             # update stats
             cumulated_loss = cumulated_loss + batch_loss
             self.update_bar(bar=bar, loss=batch_loss)
-            # update metrics
-            if train_metrics:
-                for m in train_metrics:
-                    train_metrics[m].update(loss_out["logits"].detach().cpu(), gts.cpu())
 
             # scheduler step
             self.schedule(phase=ParameterKeys.TRAINING)
 
         # end epoch training
-        cumulated_loss = cumulated_loss.cpu().item() / len(self.train_loader)
+        cumulated_loss = cumulated_loss / len(self.train_loader)
         self.print_stats(
             epoch=epoch,
             cumulated_loss=cumulated_loss,
-            metrics=train_metrics,
             phase=ParameterKeys.TRAINING,
         )
 
@@ -229,8 +218,6 @@ class CLIPRun(Run):
             loader=self.train_loader,
             desc=f"{ParameterKeys.VALIDATION} at epoch {epoch}/{self.num_epochs}",
         )
-        # watch metrics
-        val_metrics = deepcopy(self.metrics) if self.metrics else None
 
         self.model.eval()
         for ix, data_dict in bar:
@@ -246,10 +233,6 @@ class CLIPRun(Run):
             # update stats
             cumulated_loss = cumulated_loss + batch_loss
             self.update_bar(bar=bar, loss=batch_loss)
-            # update metrics
-            if val_metrics:
-                for m in val_metrics:
-                    val_metrics[m].update(out.detach().cpu(), gts.cpu())
 
             # scheduler step
             self.schedule(ParameterKeys.VALIDATION)
@@ -262,7 +245,6 @@ class CLIPRun(Run):
         self.print_stats(
             epoch=epoch,
             cumulated_loss=cumulated_loss,
-            metrics=val_metrics,
             phase=ParameterKeys.TRAINING,
         )
 
