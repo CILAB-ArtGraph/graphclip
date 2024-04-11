@@ -9,7 +9,7 @@ from src.data import DataDict
 import pandas as pd
 import src.loss as losses
 from src.utils import early_stop
-from typing import Union
+from typing import Optional
 import torch.optim.lr_scheduler as schedulers
 from src.scheduler import scheduler_registry
 import os
@@ -155,7 +155,11 @@ class CLIPRun(Run):
         self.scheduler.step(**kwargs)
 
     def print_stats(
-        self, epoch: int, cumulated_loss: float, metrics: Union[dict, None], phase: str
+        self,
+        epoch: int,
+        cumulated_loss: float,
+        phase: str,
+        metrics: Optional[dict] = None,
     ) -> None:
         print(f"Epoch {epoch}/{self.num_epochs}: {phase} loss: {cumulated_loss:.4f}")
         if metrics:
@@ -215,7 +219,7 @@ class CLIPRun(Run):
     def validate_epoch(self, epoch):
         cumulated_loss = 0.0
         bar = self.get_bar(
-            loader=self.train_loader,
+            loader=self.val_loader,
             desc=f"{ParameterKeys.VALIDATION} at epoch {epoch}/{self.num_epochs}",
         )
 
@@ -227,7 +231,8 @@ class CLIPRun(Run):
             gts = data_dict[DataDict.GTS].to(self.device)
 
             out = self.model(image=images, text=text_tokens)
-            loss = self.criterion(out, gts)
+            loss_out = self.criterion(out, gts)
+            loss = loss_out["loss"]
             batch_loss = loss.cpu().item()
 
             # update stats
