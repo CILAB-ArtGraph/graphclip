@@ -64,6 +64,7 @@ scheduler:
 early_stop:
   name: EarlyStopping
   params:
+    verbose: True
     patience: 10
 metrics:
   top1:
