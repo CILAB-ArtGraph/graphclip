@@ -51,6 +51,8 @@ dataloader:
   num_workers: 8
 criterion:
   name: CLIPImageTextLoss
+  params:
+    return_logits: True
 optimizer:
   name: Adam
   params:
