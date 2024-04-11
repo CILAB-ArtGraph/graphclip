@@ -324,8 +324,7 @@ class CLIPRun(Run):
         print(f"Having {len(classes)} classes")
         class_tokens = self.tokenizer(class_prompts).to(self.device)
 
-        class_feats = self.model.encode_text(class_tokens)
-        class_feats /= class_feats.norm(dim=-1, keepdim=True)
+        class_feats = self.model.encode_text(class_tokens, normalize=True)
 
         bar = self.get_bar(self.test_loader, desc="Test")
 
@@ -335,8 +334,7 @@ class CLIPRun(Run):
             imgs = data_dict[DataDict.IMAGE].to(self.device)
             txts = data_dict[DataDict.TEXT]
             labels = torch.as_tensor(list(map(lambda x: class2idx[x], txts))).float()
-            img_feats = self.model.encode_image(imgs)
-            img_feats /= img_feats.norm(dim=-1, keepdim=True)
+            img_feats = self.model.encode_image(imgs, normalize=True)
 
             out = img_feats @ class_feats.T
             out = out.detach().cpu()
