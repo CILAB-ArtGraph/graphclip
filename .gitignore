@@ -90,6 +90,6 @@ target/
 
 .venv/
 
-src/visualization/*
+src/visualization/*.ipynb
 
 models/*
