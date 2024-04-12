@@ -14,5 +14,8 @@ class SessionStateKey(StrEnum):
     ST_IMG = "st_img"
     IMG_PTH = "img_pth"
     IMG_EXP = "img_exp"
+    TXT_EXP = "txt_exp"
     TXT_BOX = "txt_box"
-    
+    TXT_PROMPTS = "txt_prompts"
+    SAFE_HTML = "unsafe_allow_html"
+    VIS = "vis"

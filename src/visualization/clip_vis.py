@@ -7,6 +7,7 @@ from src.models.explainer import CLIPExplainer
 from src.data import DataDict
 from typing import Any
 from src.visualization.utils import SessionStateKey
+from copy import deepcopy
 
 
 @st.cache_resource
@@ -49,6 +50,7 @@ def get_prediction(run: CLIPRun, case_id: int) -> dict[str, Any]:
     st.session_state[SessionStateKey.IDX2CLASS] = idx2class
     st.session_state[SessionStateKey.CLASS2IDX] = class2idx
     return {
+        SessionStateKey.TXT_PROMPTS: class_prompts,
         SessionStateKey.LOGITS: prediction,
         SessionStateKey.IMG_FEATS: img_feats,
         SessionStateKey.TXT_FEATS: class_feats,
@@ -107,6 +109,23 @@ def restore_img_exp_session_state():
     st.write(state.get(SessionStateKey.TXT_BOX))
 
 
+def store_txt_exp_session_state(vis):
+    state = {
+        SessionStateKey.TXT_EXP: {
+            SessionStateKey.VIS: vis,
+            SessionStateKey.SAFE_HTML: True,
+        }
+    }
+    st.session_state.update(state)
+
+
+def restore_txt_exp_session_state():
+    state = deepcopy(st.session_state.get(SessionStateKey.TXT_EXP, {}))
+    if not state:
+        return
+    st.write(state.pop(SessionStateKey.VIS), **state)
+
+
 def main():
     st.title("CLIP Explainer")
 
@@ -143,7 +162,7 @@ def main():
 
     # handles the image explanation
     if st.button("Explain image"):
-        if not case_id:
+        if case_id is None:
             st.error("Please choose an instance before!")
         out = get_prediction(run, case_id)
         pred_idx = out[SessionStateKey.LOGITS].argmax().cpu().item()
@@ -161,13 +180,26 @@ def main():
         )
         exp_caption = f"Explaination of the image for class {pred_class}"
         st.write(exp_caption)
-        store_img_exp_session_state(imgs = [img_pth, overlayed_img], caption=exp_caption)
+        store_img_exp_session_state(imgs=[img_pth, overlayed_img], caption=exp_caption)
     elif SessionStateKey.IMG_EXP in st.session_state:
         restore_img_exp_session_state()
 
     if st.button("Explain text"):
-        if not case_id:
+        if case_id is None:
             st.error("Please choose an instance before!")
+        out = get_prediction(run, case_id)
+        pred_idx = out[SessionStateKey.LOGITS].argmax().cpu().item()
+        class_target = out[SessionStateKey.TXT_PROMPTS][pred_idx]
+        x, vis = explainer.explain_text(
+            model=run.model,
+            text=[class_target],
+            image_reference_feats=out[SessionStateKey.IMG_FEATS],
+            plot=True,
+        )
+        st.write(vis, unsafe_allow_html=True)
+        store_txt_exp_session_state(vis)
+    elif SessionStateKey.TXT_EXP in st.session_state:
+        restore_txt_exp_session_state()
 
 
 if __name__ == "__main__":
