@@ -17,16 +17,25 @@ def _init_run():
 
 
 def get_img_path(run: CLIPRun, case_id: int):
+    """
+    Returns the image path by the case id
+    """
     img_dir = run.test_loader.dataset.img_dir
     img_path = run.test_loader.dataset.dataset.iloc[case_id, 0]
     return f"{img_dir}/{img_path}"
 
 
 def get_style_by_case_id(run: CLIPRun, case_id: int):
+    """
+    Returns the style by case id
+    """
     return run.test_loader.dataset.dataset.iloc[case_id, 1]
 
 
 def get_prediction(run: CLIPRun, case_id: int) -> dict[str, Any]:
+    """
+    Returns the prediction by case id
+    """
     run.model = run.model.to(run.device)
     class_prompts, idx2class, class2idx = run.get_class_info()
     class_tokens = run.tokenizer(class_prompts).to(run.device)
@@ -46,9 +55,34 @@ def get_prediction(run: CLIPRun, case_id: int) -> dict[str, Any]:
     }
 
 
+def store_img_vis_session_state(img, img_pth, caption="", use_column_with=False):
+    "Stores the session state for the basic image visualization"
+    state = {
+        SessionStateKey.CASE_IMG: {
+            SessionStateKey.ST_IMG: {
+                SessionStateKey.IMG: img,
+                SessionStateKey.CAPTION: caption,
+                SessionStateKey.USE_COL_WIDTH: use_column_with,
+            },
+            SessionStateKey.IMG_PTH: img_pth,
+        }
+    }
+    st.session_state.update(state)
+
+def restore_img_vis_session_state():
+    "Restores the img visualization when other buttons are clicked if it had been clicked previously"
+    state = st.session_state.get(SessionStateKey.CASE_IMG, {})
+    if not state:
+        return None
+    img_kwargs = state.get(SessionStateKey.ST_IMG)
+    st.image(**img_kwargs)
+    return state.get(SessionStateKey.IMG_PTH)
+
+
 def main():
     st.title("CLIP Explainer")
 
+    # run and explainer are essential
     run = _init_run()
     explainer = CLIPExplainer(
         device=run.device,
@@ -62,22 +96,22 @@ def main():
         max_value=len(run.test_loader.dataset) - 1,
         step=1,
     )
+
+    # handle the image visualization
     if st.button("Visualize"):
         img_style = get_style_by_case_id(run=run, case_id=case_id)
         img_pth = get_img_path(run=run, case_id=case_id)
         img = Image.open(img_pth).convert("RGB")
-        st.image(img, use_column_width=True, caption=f"GT style: {img_style}")
-        st.session_state["vis_img"] = img
-        st.session_state["gt"] = img_style
-        st.session_state["img_pth"] = img_pth
-    elif "vis_img" in st.session_state:
-        st.image(
-            st.session_state.get("vis_img"),
-            use_column_width=True,
-            caption=f"GT style: {st.session_state.get('gt')}",
-        )
-        img_pth = st.session_state["img_pth"]
+        caption = f"GT style: {img_style}"
 
+        st.image(img, use_column_width=True, caption=caption)
+                
+        # store the session state
+        store_img_vis_session_state(img=img, img_pth=img_pth, caption=caption, use_column_with=True)
+    elif SessionStateKey.CASE_IMG in st.session_state:
+        img_pth = restore_img_vis_session_state()
+
+    # handles the image explanation
     if st.button("Explain image"):
         if not case_id:
             st.error("Please choose an instance before!")
