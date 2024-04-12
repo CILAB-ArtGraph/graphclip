@@ -6,6 +6,7 @@ from PIL import Image
 from src.models.explainer import CLIPExplainer
 from src.data import DataDict
 from typing import Any
+from src.visualization.utils import SessionStateKey
 
 
 @st.cache_resource
@@ -36,8 +37,8 @@ def get_prediction(run: CLIPRun, case_id: int) -> dict[str, Any]:
     img_feats = run.model.encode_image(img_tensor, normalize=True)
     prediction = img_feats @ class_feats.T
     # save to session_state
-    st.session_state["idx2class"] = idx2class
-    st.session_state["class2idx"] = class2idx
+    st.session_state[SessionStateKey.IDX2CLASS] = idx2class
+    st.session_state[SessionStateKey.CLASS2IDX] = class2idx
     return {
         "prediction": prediction,
         "img_feats": img_feats,
@@ -82,7 +83,7 @@ def main():
             st.error("Please choose an instance before!")
         out = get_prediction(run, case_id)
         pred_idx = out["prediction"].argmax().cpu().item()
-        pred_class = st.session_state["idx2class"][pred_idx]
+        pred_class = st.session_state[SessionStateKey.IDX2CLASS][pred_idx]
         overlayed_img = explainer.explain_image(
             img_path=img_pth,
             model=run.model,
