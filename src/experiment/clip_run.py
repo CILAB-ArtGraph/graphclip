@@ -307,6 +307,15 @@ class CLIPRun(Run):
             )
             self.model.load_state_dict(state_dict=state_dict)
 
+    def get_class_info(self):
+        classes = self.get_classes_for_test()
+        class_source = self.parameters.get(ParameterKeys.CLASS_SOURCE, None)
+        class_key = self.parameters.get(ParameterKeys.KEY, None)
+        class_prompts, idx2class, class2idx = self.get_class_maps(
+            classes, source=class_source, key=class_key
+        )
+        return class_prompts, idx2class, class2idx
+
     @torch.no_grad()
     def test(self) -> dict[str, float]:
         # check for test loader
