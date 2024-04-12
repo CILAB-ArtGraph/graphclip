@@ -67,7 +67,9 @@ class CLIPRun(Run):
         print("Done!")
 
     def _init_model(self) -> CLIP:
-        return create_model(**self.parameters.get(ParameterKeys.MODEL))
+        model = create_model(**self.parameters.get(ParameterKeys.MODEL)).to(self.device)
+        self.load_state_dict()
+        return model
 
     def _init_tokenizer(self) -> SimpleTokenizer:
         return get_tokenizer(**self.parameters.get(ParameterKeys.TOKENIZER, {}))
