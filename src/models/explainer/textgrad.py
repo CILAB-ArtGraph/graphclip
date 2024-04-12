@@ -28,6 +28,7 @@ def interpret_sentence(
     text = sentence[0].split()
     vis_data_records_ig = []
 
+    model = model.to(device)
     indexed = tokenizer(sentence).to(device)
     input_indices = indexed.clone()
     model.zero_grad()
@@ -44,24 +45,24 @@ def interpret_sentence(
     attributions = attributions.sum(dim=2).squeeze(0)
     attributions = attributions / torch.norm(attributions)
     attributions = attributions.cpu().detach().numpy()
-
     real_attributions = attributions[1 : 1 + len(text)]
     x = torch.from_numpy(real_attributions)
-    raw_input_ids = text
+    raw_input_ids = text[:len(x)]
 
-    if plot:
-        # storing couple samples in an array for visualization purposes
-        vis_data_records_ig.append(
-            visualization.VisualizationDataRecord(
-                word_attributions=x,
-                pred_prob=pred,
-                pred_class=pred_ind,
-                true_class=label,
-                attr_class=1,
-                attr_score=attributions.sum(),
-                raw_input_ids=raw_input_ids,
-                convergence_score=delta,
-            )
+    # storing couple samples in an array for visualization purposes
+    vis_data_records_ig.append(
+        visualization.VisualizationDataRecord(
+            word_attributions=x,
+            pred_prob=pred,
+            pred_class=pred_ind,
+            true_class=label,
+            attr_class=1,
+            attr_score=attributions.sum(),
+            raw_input_ids=raw_input_ids,
+            convergence_score=delta,
         )
-        visualization.visualize_text(vis_data_records_ig)
-    return x
+    )
+    out = vis_data_records_ig
+    if plot:
+        out = visualization.visualize_text(vis_data_records_ig)
+    return x, out
