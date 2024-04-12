@@ -13,4 +13,6 @@ class SessionStateKey(StrEnum):
     USE_COL_WIDTH = "use_column_width"
     ST_IMG = "st_img"
     IMG_PTH = "img_pth"
+    IMG_EXP = "img_exp"
+    TXT_BOX = "txt_box"
     

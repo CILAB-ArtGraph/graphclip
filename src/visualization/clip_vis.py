@@ -69,6 +69,7 @@ def store_img_vis_session_state(img, img_pth, caption="", use_column_with=False)
     }
     st.session_state.update(state)
 
+
 def restore_img_vis_session_state():
     "Restores the img visualization when other buttons are clicked if it had been clicked previously"
     state = st.session_state.get(SessionStateKey.CASE_IMG, {})
@@ -79,8 +80,32 @@ def restore_img_vis_session_state():
     return state.get(SessionStateKey.IMG_PTH)
 
 
-def store_img_exp_session_state():
-    pass
+def store_img_exp_session_state(imgs, caption):
+    """
+    Stores the info for image explanations
+    """
+    state = {
+        SessionStateKey.IMG_EXP: {
+            SessionStateKey.ST_IMG: {
+                SessionStateKey.IMG: imgs,
+                SessionStateKey.USE_COL_WIDTH: True,
+            },
+            SessionStateKey.TXT_BOX: caption,
+        },
+    }
+    st.session_state.update(state)
+
+
+def restore_img_exp_session_state():
+    """
+    Restores the information about image explanation when clicking on ther buttons
+    """
+    state = st.session_state.get(SessionStateKey.IMG_EXP, {})
+    if not state:
+        return
+    st.image(**state.get(SessionStateKey.ST_IMG))
+    st.write(state.get(SessionStateKey.TXT_BOX))
+
 
 def main():
     st.title("CLIP Explainer")
@@ -100,8 +125,6 @@ def main():
         step=1,
     )
 
-    col1, col2 = st.columns(2)
-
     # handle the image visualization
     if st.button("Visualize"):
         img_style = get_style_by_case_id(run=run, case_id=case_id)
@@ -110,9 +133,11 @@ def main():
         caption = f"GT style: {img_style}"
 
         st.image(img, use_column_width=True, caption=caption)
-                
+
         # store the session state
-        store_img_vis_session_state(img=img, img_pth=img_pth, caption=caption, use_column_with=True)
+        store_img_vis_session_state(
+            img=img, img_pth=img_pth, caption=caption, use_column_with=True
+        )
     elif SessionStateKey.CASE_IMG in st.session_state:
         img_pth = restore_img_vis_session_state()
 
@@ -130,17 +155,19 @@ def main():
             target=pred_idx,
             overlayed=True,
         )
-        with col1:
-            st.image(**st.session_state.get(SessionStateKey.CASE_IMG).get(SessionStateKey.ST_IMG))
-        
-        with col2:
-            st.image(overlayed_img, caption=f"Explaination of the image for class {pred_class}", use_column_width=True)
-        
+        st.image(
+            [img_pth, overlayed_img],
+            use_column_width=True,
+        )
+        exp_caption = f"Explaination of the image for class {pred_class}"
+        st.write(exp_caption)
+        store_img_exp_session_state(imgs = [img_pth, overlayed_img], caption=exp_caption)
+    elif SessionStateKey.IMG_EXP in st.session_state:
+        restore_img_exp_session_state()
 
     if st.button("Explain text"):
         if not case_id:
             st.error("Please choose an instance before!")
-        
 
 
 if __name__ == "__main__":
