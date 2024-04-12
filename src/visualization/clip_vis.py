@@ -49,9 +49,9 @@ def get_prediction(run: CLIPRun, case_id: int) -> dict[str, Any]:
     st.session_state[SessionStateKey.IDX2CLASS] = idx2class
     st.session_state[SessionStateKey.CLASS2IDX] = class2idx
     return {
-        "prediction": prediction,
-        "img_feats": img_feats,
-        "class_feats": class_feats,
+        SessionStateKey.LOGITS: prediction,
+        SessionStateKey.IMG_FEATS: img_feats,
+        SessionStateKey.TXT_FEATS: class_feats,
     }
 
 
@@ -79,6 +79,9 @@ def restore_img_vis_session_state():
     return state.get(SessionStateKey.IMG_PTH)
 
 
+def store_img_exp_session_state():
+    pass
+
 def main():
     st.title("CLIP Explainer")
 
@@ -96,6 +99,8 @@ def main():
         max_value=len(run.test_loader.dataset) - 1,
         step=1,
     )
+
+    col1, col2 = st.columns(2)
 
     # handle the image visualization
     if st.button("Visualize"):
@@ -116,24 +121,26 @@ def main():
         if not case_id:
             st.error("Please choose an instance before!")
         out = get_prediction(run, case_id)
-        pred_idx = out["prediction"].argmax().cpu().item()
+        pred_idx = out[SessionStateKey.LOGITS].argmax().cpu().item()
         pred_class = st.session_state[SessionStateKey.IDX2CLASS][pred_idx]
         overlayed_img = explainer.explain_image(
             img_path=img_pth,
             model=run.model,
-            text_reference_feats=out["class_feats"],
-            target=out["prediction"].argmax().cpu().item(),
+            text_reference_feats=out[SessionStateKey.TXT_FEATS],
+            target=pred_idx,
             overlayed=True,
         )
-        st.image(
-            [img_pth, overlayed_img],
-            use_column_width=True,
-        )
-        st.write(f"Explaination of the image for class {pred_class}")
+        with col1:
+            st.image(**st.session_state.get(SessionStateKey.CASE_IMG).get(SessionStateKey.ST_IMG))
+        
+        with col2:
+            st.image(overlayed_img, caption=f"Explaination of the image for class {pred_class}", use_column_width=True)
+        
 
     if st.button("Explain text"):
         if not case_id:
             st.error("Please choose an instance before!")
+        
 
 
 if __name__ == "__main__":
