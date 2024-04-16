@@ -1,0 +1,15 @@
+model:
+  model_name: ViT-B-32
+  pretrained: laion2b_s34b_b79k
+tokenizer: ViT-B-32
+labels:
+  in_dir: data/external/artgraph2bestemotions/mapping
+  exceptions: [artwork, rel, relidx2relname.csv]
+  mapping:
+    training: training_node
+dataset:
+  batch_size: 128
+  drop_last: False
+  shuffle: False
+out_dir: processed/label_embeddings
+device: cuda
