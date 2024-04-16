@@ -1,0 +1,6 @@
+connection:
+  uri: bolt://localhost:7687
+  username: neo4j
+  password: neo4j
+  database: ret
+out: data/external/artgraph2bestemotions

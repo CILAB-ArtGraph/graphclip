@@ -1,6 +1,25 @@
+from .db_manager import DBManager, get_stat_queries
+from .raw_generation_nosplit import ArtGraphNoSplit
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
+
+
+def download_artgraph(parameters):
+    db_manager_params = {k: v for k, v in parameters['connection'].items() if k != 'database'}
+    db_manager = DBManager(**db_manager_params)
+    db = parameters['connection']['database']
+    queries = {
+        'mapping': db_manager.get_mapping_queries(db),
+        'relations': db_manager.get_relation_queries(db),
+        'stats': get_stat_queries()
+    }
+    artgraph = ArtGraphNoSplit(root=parameters['out'],
+                               conf=parameters['connection'],
+                               queries=queries,
+                               artwork_subset=db_manager.get_artworks(db))
+    artgraph.build()
+    artgraph.write()
 
 
 def preprocess_normal(
