@@ -13,7 +13,14 @@ def main():
 def split(parameters):
     from src.preprocess import preprocess_normal
     preprocess_normal(**load_ruamel(parameters))
-    
+
+@main.command("download")
+@click.option(
+    "--parameters", help="Path to parameters file"
+)
+def download(parameters):
+    from src.preprocess import download_artgraph
+    download_artgraph(load_ruamel(parameters))
     
 @main.command("test")
 @click.option(
