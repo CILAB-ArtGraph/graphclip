@@ -1,0 +1,1 @@
+from .extract_images_feats import extract_vis_clip
