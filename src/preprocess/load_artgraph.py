@@ -1,4 +1,4 @@
-from enum import Enum, IntEnum
+from enum import IntEnum
 import numpy as np
 import pandas as pd
 import torch
@@ -21,7 +21,7 @@ class VisFeatEncoder(IntEnum):
     RESNET = 3
 
 
-class FileMapping(Enum):
+class FileMapping(utils.StrEnum):
     MAPPING = 'mapping'
     RAW = 'raw'
     MAPPING_SUFFIX = '_entidx2name'
@@ -120,9 +120,9 @@ class ArtGraph(InMemoryDataset):
                                                        device='cpu')
 
         # add edges
-        for edge_type in os.listdir(fr'{self.raw_dir}\relations'):
+        for edge_type in os.listdir(fr'{self.raw_dir}/relations'):
             sub, verb, obj = edge_type.split("___")
-            path = fr'{self.raw_dir}\relations\\{edge_type}\edge.csv'
+            path = fr'{self.raw_dir}/relations/{edge_type}/edge.csv'
             edge_index = pd.read_csv(path, header=None, dtype=np.int64).values
             edge_index = torch.from_numpy(edge_index).t().contiguous().type(torch.LongTensor)
             if obj == 'training':
