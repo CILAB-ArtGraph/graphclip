@@ -5,6 +5,15 @@ import pandas as pd
 from copy import deepcopy
 from tqdm import tqdm
 from random import shuffle
+import torch_geometric.data
+from typing import Union
+from src.utils import StrEnum
+
+
+class MappingKeys(StrEnum):
+    IDX = "idx"
+    NAME = "name"
+    ARTWORK = "artwork"
 
 
 class ArtGraphInductiveSplitter:
@@ -156,6 +165,55 @@ class ArtGraphInductiveSplitter:
 
 
 class ArtGraphInductivePruner:
-    """Given a HeteroData object and the artwork to mantain, it discards all the others
-    """
-    pass
+    """Given a HeteroData object and the artwork to mantain, it discards all the others"""
+
+    def __init__(
+        self,
+        data: torch_geometric.data.HeteroData,
+        mapping: Union[str, pd.DataFrame],
+        source: Union[str, pd.DataFrame],
+        mapping_kwargs={},
+        source_kwargs={},
+        **kwargs,
+    ) -> None:
+        self.data = data
+        self.mapping = self._load_data(mapping, **mapping_kwargs)
+        self.source = self._load_data(source, **source_kwargs)
+
+    def _get_pruned_artworks(self) -> dict[int, int]:
+        pruned_artworks = (
+            pd.merge(
+                left=self.source,
+                right=self.mapping,
+                left_on=MappingKeys.ARTWORK,
+                right_on=MappingKeys.NAME,
+            )
+            .sort_values(by=MappingKeys.IDX)[MappingKeys.IDX]
+            .tolist()
+        )
+        return {old_idx: new_idx for (new_idx, old_idx) in enumerate(pruned_artworks)}
+
+    def transform(self) -> torch_geometric.data.HeteroData:
+        out_data = deepcopy(self.data)
+        artwork_mapping = self._get_pruned_artworks()
+        out_data["artwork"].x = out_data["artwork"].x[list(artwork_mapping.keys())]
+        for etype in self.data.metadata()[
+            1
+        ]:  # for each edge type transform the edge index
+            (h, _, t) = etype
+            if h == "artwork":
+                target_col = 0
+            elif t == "artwork":
+                target_col = 1
+            else:
+                continue
+            edge_index = pd.DataFrame(out_data[etype].edge_index.T.numpy())
+            # filtering
+            edge_index = edge_index[edge_index[target_col].isin(list(artwork_mapping.keys()))]
+            # mapping
+            edge_index[target_col] = edge_index[target_col].map(artwork_mapping)
+            out_data[etype].edge_index = torch.from_numpy(edge_index.values).long().T
+        return out_data
+
+    def _load_data(self, data: Union[str, pd.DataFrame], **kwargs) -> pd.DataFrame:
+        return data if isinstance(data, pd.DataFrame) else pd.read_csv(data, **kwargs)
