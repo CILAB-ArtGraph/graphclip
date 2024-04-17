@@ -57,7 +57,7 @@ def extract_label_clip(parameters: dict):
             tokenizer=tokenizer,
             target_col=target_col,
         )
-        loader = DataLoader(dataset, **parameters["dataset"])
+        loader = DataLoader(dataset, **parameters["dataloader"])
         tensors = None
         for tokens in tqdm(loader):
             tokens = tokens.to(device)

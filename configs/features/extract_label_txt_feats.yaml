@@ -7,7 +7,7 @@ labels:
   exceptions: [artwork, rel, relidx2relname.csv]
   mapping:
     training: training_node
-dataset:
+dataloader:
   batch_size: 128
   drop_last: False
   shuffle: False
