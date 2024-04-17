@@ -9,10 +9,11 @@ def main():
 
 @main.command("split")
 @click.option("--parameters", help="Path to parameters file")
-def split(parameters):
-    from src.preprocess import preprocess_normal
+@click.option("--graph", is_flag=True, default=False)
+def split(parameters, graph):
+    from src.preprocess import split as split_fn
 
-    preprocess_normal(**load_ruamel(parameters))
+    split_fn(parameters=load_ruamel(parameters), graph=graph)
 
 
 @main.command("download")
