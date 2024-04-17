@@ -28,7 +28,9 @@ def download(parameters):
 @click.option("--t", help="Either visual or label")
 def extract_features(parameters, t):
     from src.features import extract_features
+
     extract_features(load_ruamel(parameters), t)
+
 
 @main.command("test")
 @click.option("--parameters", help="Path to parameters file")
