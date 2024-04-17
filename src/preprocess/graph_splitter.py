@@ -153,3 +153,9 @@ class ArtGraphInductiveSplitter:
         test_data, test_map = self.transform_split(test_central_nodes)
         print("Done!")
         return (train_data, train_map), (val_data, val_map), (test_data, test_map)
+
+
+class ArtGraphInductivePruner:
+    """Given a HeteroData object and the artwork to mantain, it discards all the others
+    """
+    pass
