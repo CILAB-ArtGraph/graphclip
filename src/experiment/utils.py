@@ -33,3 +33,5 @@ class ParameterKeys(StrEnum):
     HUGGINGFACE_COS_SCHEDULER = "HuggingFaceCosineScheduler"
     TRAINING = "training"
     VALIDATION = "validation"
+    VISUAL = "visual"
+    GNN = "gnn"
