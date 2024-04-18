@@ -72,7 +72,10 @@ class CLIPRun(Run):
         return model
 
     def _init_tokenizer(self) -> SimpleTokenizer:
-        return get_tokenizer(**self.parameters.get(ParameterKeys.TOKENIZER, {}))
+        tokenizer_params = self.parameters.get(ParameterKeys.TOKENIZER, {})
+        if not tokenizer_params:
+            return None
+        return get_tokenizer(**tokenizer_params)
 
     def _init_criterion(self) -> torch.nn.Module:
         params = deepcopy(self.parameters.get(ParameterKeys.CRITERION), None)
