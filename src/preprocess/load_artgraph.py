@@ -116,7 +116,7 @@ class ArtGraph(InMemoryDataset):
                 data[node_type].x = torch.eye(num_nodes_df[node_type].tolist()[0])
         elif self.labels == LabelEncoder.OPEN_CLIP:
             for nodes_type in filter(lambda x: x != 'artwork', num_nodes_df.columns):
-                print(f"Making {node_type} node")
+                print(f"Making {nodes_type} node")
                 data[nodes_type].x = utils.load_tensor(file=f'{self.label_feats_root}/{nodes_type}.safetensors',
                                                        key='embeddings',
                                                        framework='pt',
