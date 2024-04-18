@@ -6,7 +6,7 @@ from .utils import DataDict
 import torch
 
 
-class ImgeGraphDataset(ImageTextDatset):
+class ImageGraphDataset(ImageTextDatset):
     def __init__(
         self,
         dataset: Union[str, pd.DataFrame],
