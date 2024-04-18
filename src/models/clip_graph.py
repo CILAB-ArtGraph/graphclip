@@ -9,6 +9,7 @@ import torch.nn.functional as F
 class ReturnDict(StrEnum):
     IMAGE = "image"
     GRAPH = "graph"
+    LOGIT_SCALE = "logit_scale"
 
 
 class CLIPGraph(torch.nn.Module):
@@ -18,6 +19,7 @@ class CLIPGraph(torch.nn.Module):
         gnn_model: BasicGNN,
         metadata: dict,
         target_node_t: str,
+        use_logit_scale: bool = False,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -25,6 +27,8 @@ class CLIPGraph(torch.nn.Module):
         hetero_gnn = pyg.nn.to_hetero(gnn_model, metadata)
         self.gnn = hetero_gnn
         self.target_node_t = target_node_t
+        self.use_logit_scale = use_logit_scale
+        self.logit_scale = clip_model.logit_scale
         assert target_node_t in metadata[0]
 
     def forward(
@@ -50,9 +54,14 @@ class CLIPGraph(torch.nn.Module):
         )
 
         if return_dict:
-            return {
+            out = {
                 ReturnDict.IMAGE: image_features,
                 ReturnDict.GRAPH: graph_features,
             }
+            if self.use_logit_scale:
+                out.update({ReturnDict.LOGIT_SCALE: self.logit_scale})
+            return ouy
 
-        return image_features, graph_features
+        if not self.use_logit_scale:
+            return image_features, graph_features
+        return image_features, graph_features, self.logit_scale
