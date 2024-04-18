@@ -7,3 +7,4 @@ class DataDict(StrEnum):
     GTS = "gts"
     STYLE = "style"
     SUMMARY = "summary"
+    NODES = "nodes"
