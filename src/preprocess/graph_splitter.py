@@ -8,6 +8,7 @@ from random import shuffle
 import torch_geometric.data
 from typing import Union
 from src.utils import StrEnum
+from torch_geometric.transforms import ToUndirected, AddSelfLoops
 
 
 class MappingKeys(StrEnum):
@@ -174,11 +175,15 @@ class ArtGraphInductivePruner:
         source: Union[str, pd.DataFrame],
         mapping_kwargs={},
         source_kwargs={},
+        add_self_loops: bool = True,
+        to_undirected: bool = True,
         **kwargs,
     ) -> None:
         self.data = data
         self.mapping = self._load_data(mapping, **mapping_kwargs)
         self.source = self._load_data(source, **source_kwargs)
+        self.add_self_loops = add_self_loops
+        self.to_undirected = to_undirected
 
     def _get_pruned_artworks(self) -> dict[int, int]:
         pruned_artworks = (
@@ -209,10 +214,19 @@ class ArtGraphInductivePruner:
                 continue
             edge_index = pd.DataFrame(out_data[etype].edge_index.T.numpy())
             # filtering
-            edge_index = edge_index[edge_index[target_col].isin(list(artwork_mapping.keys()))]
+            edge_index = edge_index[
+                edge_index[target_col].isin(list(artwork_mapping.keys()))
+            ]
             # mapping
             edge_index[target_col] = edge_index[target_col].map(artwork_mapping)
             out_data[etype].edge_index = torch.from_numpy(edge_index.values).long().T
+
+        # postprocess
+        if self.add_self_loops:
+            out_data = AddSelfLoops()(out_data)
+        if self.to_undirected:
+            out_data = ToUndirected()(out_data)
+
         return out_data
 
     def _load_data(self, data: Union[str, pd.DataFrame], **kwargs) -> pd.DataFrame:
