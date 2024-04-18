@@ -60,7 +60,7 @@ class CLIPGraph(torch.nn.Module):
             }
             if self.use_logit_scale:
                 out.update({ReturnDict.LOGIT_SCALE: self.logit_scale})
-            return ouy
+            return out
 
         if not self.use_logit_scale:
             return image_features, graph_features
