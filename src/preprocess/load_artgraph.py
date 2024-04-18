@@ -6,6 +6,7 @@ import torch_geometric as pyg
 import os
 from torch_geometric.data import InMemoryDataset
 import src.utils as utils
+from tqdm import tqdm
 
 
 class LabelEncoder(IntEnum):
@@ -71,10 +72,11 @@ class ArtGraph(InMemoryDataset):
         return
 
     def __get_artwork_features(self):
+        print("Getting artwork features")
         features = torch.empty(size=(116475, 512))
         mapping = pd.read_csv(f'{self.root}/{FileMapping.MAPPING.value}/artwork{FileMapping.MAPPING_SUFFIX.value}.csv',
                               header=None)
-        for ix, name in mapping.values:
+        for ix, name in tqdm(mapping.values):
             name = name[:-4] + '.safetensors'
             features[ix] = utils.load_tensor(f'{self.vis_feats_root}/{name}', key='image')
         return features
@@ -114,6 +116,7 @@ class ArtGraph(InMemoryDataset):
                 data[node_type].x = torch.eye(num_nodes_df[node_type].tolist()[0])
         elif self.labels == LabelEncoder.OPEN_CLIP:
             for nodes_type in filter(lambda x: x != 'artwork', num_nodes_df.columns):
+                print(f"Making {node_type} node")
                 data[nodes_type].x = utils.load_tensor(file=f'{self.label_feats_root}/{nodes_type}.safetensors',
                                                        key='embeddings',
                                                        framework='pt',
@@ -121,6 +124,7 @@ class ArtGraph(InMemoryDataset):
 
         # add edges
         for edge_type in os.listdir(fr'{self.raw_dir}/relations'):
+            print(f"Doing {edge_type} edge")
             sub, verb, obj = edge_type.split("___")
             path = fr'{self.raw_dir}/relations/{edge_type}/edge.csv'
             edge_index = pd.read_csv(path, header=None, dtype=np.int64).values
