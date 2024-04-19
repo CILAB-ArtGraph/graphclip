@@ -43,7 +43,8 @@ def test(parameters):
 
 @main.command("experiment")
 @click.option("--parameters", help="Path to parameters file")
-def experiment(parameters):
-    from src.experiment import fine_tune_clip
+@click.option("--graph", is_flag=True, default=False)
+def experiment(parameters, graph):
+    from src.experiment import run_experiment
 
-    fine_tune_clip(load_ruamel(parameters))
+    run_experiment(load_ruamel(parameters), graph)
