@@ -7,8 +7,8 @@ import torch.nn.functional as F
 
 
 class ReturnDict(StrEnum):
-    IMAGE = "image"
-    GRAPH = "graph"
+    IMAGE = "image_features"
+    GRAPH = "graph_features"
     LOGIT_SCALE = "logit_scale"
 
 
