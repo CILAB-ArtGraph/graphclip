@@ -31,6 +31,15 @@ class CLIPGraph(torch.nn.Module):
         self.logit_scale = clip_model.logit_scale
         assert target_node_t in metadata[0]
 
+    def encode_image(self, image, normalize: bool = False):
+        features = self.visual(image)
+        return F.normalize(features, dim=-1) if normalize else features
+
+    def encode_graph(self, x_dict, edge_index_dict, normalize: bool = False):
+        graph = self.gnn(x_dict, edge_index_dict)
+        target = graph[self.target_node_t]
+        return F.normalize(target, dim=-1) if normalize else target
+
     def forward(
         self,
         image,
@@ -65,3 +74,5 @@ class CLIPGraph(torch.nn.Module):
         if not self.use_logit_scale:
             return image_features, graph_features
         return image_features, graph_features, self.logit_scale
+
+    

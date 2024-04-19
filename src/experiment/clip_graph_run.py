@@ -136,3 +136,37 @@ class CLIPGraphRun(CLIPRun):
             cumulated_loss=cumulated_loss,
             phase=ParameterKeys.VALIDATION,
         )
+
+    def get_class_maps(self):
+        return self.train_loader.dataset.style2idx, self.train_loader.dataset.idx2style
+
+    @torch.no_grad()
+    def test(self) -> dict[str, float]:
+        if not self.test_loader:
+            return {}
+        self.load_state_dict()
+        self.model = self.model.to(self.device)
+        classes = self.get_classes_for_test()
+        class2idx, idx2class = self.get_class_maps()
+
+        print(f"Having {len(classes)} classes")
+
+        class_feats = self.model.encode_graph(
+            self.graph.x_dict, self.graph.edge_index_dict, normalize=True
+        )
+
+        bar = self.get_bar(self.test_loader, desc="Test")
+
+        metrics = deepcopy(self.metrics)
+
+        for ix, data_dict in bar:
+            imgs = data_dict[DataDict.IMAGE].to(self.device)
+            txts = data_dict[DataDict.TEXT]
+            labels = torch.as_tensor(list(map(lambda x: class2idx[x], txts))).float()
+            img_feats = self.model.encode_image(imgs, normalize=True)
+
+            out = img_feats @ class_feats.T
+            out = out.detach().cpu()
+            for m in metrics:
+                metrics[m].update(out, labels)
+        return {k: v.compute().cpu().item() for k, v in metrics.items()}
