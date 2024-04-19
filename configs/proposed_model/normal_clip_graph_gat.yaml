@@ -19,6 +19,7 @@ model:
         negative_slope: -0.2
   params:
     target_node_t: style
+    use_logit_scale: True
 dataset:
   train:
     name: &clip_class ImageGraphDataset
@@ -62,7 +63,7 @@ dataloader:
   drop_last: False
   num_workers: 8
 criterion:
-  name: CLIPImageTextLoss
+  name: CLIPImageGraphLoss
   params:
     return_logits: True
 optimizer:
