@@ -13,4 +13,4 @@
 #SBATCH --out=experiment.out
 #SBATCH --err=experiment.out
 
-srun ./slurm/proposed_model/normal_clip_graph_gat/exe $@
+srun ./slurms/proposed_model/normal_clip_graph_gat/exe $@
