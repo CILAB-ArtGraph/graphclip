@@ -45,16 +45,23 @@ class CLIPGraphRun(CLIPRun):
     def set_model_parameters_for_warmup(self, current_epoch: int) -> None:
         # start setting ViT parameters freezed
         for p in self.model.visual.parameters():
-            p.requires_grad = False 
+            p.requires_grad = False
 
         # let always gnn parameters to be twiched
         for p in self.model.gnn.parameters():
             p.requires_grad = True
 
         if current_epoch < self.warmup_lblock_epochs:
+            print("Warm-up phase. ViT completely frozen")
             return
-        start_block = (len(self.model.visual.transformer.resblocks) - 1) - ((current_epoch - self.warmup_lblock_epochs) % 2)
-        for p in self.model.visual.transformer.resblocks[start_block: ].parameters():
+        start_block = (len(self.model.visual.transformer.resblocks) - 1) - (
+            (current_epoch - self.warmup_lblock_epochs) // 2
+        )
+        start_block = start_block if start_block > 0 else 0
+        print(
+            f"Unlocking {len(self.model.visual.transformer.resblocks[start_block: ])}/{len(self.model.visual.transformer.resblocks)} layers for ViT"
+        )
+        for p in self.model.visual.transformer.resblocks[start_block:].parameters():
             p.requires_grad = True
 
     def train_epoch(self, epoch):
