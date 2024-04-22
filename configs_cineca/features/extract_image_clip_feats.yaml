@@ -1,0 +1,13 @@
+model:
+  model_name:  ViT-B-32
+  pretrained:  laion2b_s34b_b79k
+dataset:
+  image_dir: data/raw/images-resized
+dataloader: 
+  batch_size: 64
+  num_workers: 8
+  shuffle: True
+  drop_last: False
+loop:
+  device: cuda
+  out_dir: /ext/raffaele/contrastive-artwork-classification/visual_embeddings
