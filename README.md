@@ -54,4 +54,17 @@ Project Organization
 --------
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+<<<<<<< HEAD
 >>>>>>> 38dc6a6 (fist commit)
+=======
+
+
+# VENV INSTALLATION
+
+```
+pip install torch torchvision torchaudio
+pip install torch_geometric
+pip install nlpaug nltk
+pip install -r requirements.txt
+```
+>>>>>>> e5c7ea7 (add readme and requirements)
