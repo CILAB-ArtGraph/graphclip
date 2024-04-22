@@ -7,4 +7,5 @@ pruner:
   source: data/processed/normal/artgraph_clip/train.csv
   mapping_kwargs: 
     names: [idx, name]
+  sample: .5
 out_dir: data/processed/graph

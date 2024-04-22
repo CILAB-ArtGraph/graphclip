@@ -6,15 +6,17 @@ from copy import deepcopy
 from tqdm import tqdm
 from random import shuffle
 import torch_geometric.data
-from typing import Union
+from typing import Union, Optional
 from src.utils import StrEnum
 from torch_geometric.transforms import ToUndirected, AddSelfLoops
+from sklearn.model_selection import train_test_split
 
 
 class MappingKeys(StrEnum):
     IDX = "idx"
     NAME = "name"
     ARTWORK = "artwork"
+    STYLE = "style"
 
 
 class ArtGraphInductiveSplitter:
@@ -177,6 +179,7 @@ class ArtGraphInductivePruner:
         source_kwargs={},
         add_self_loops: bool = True,
         to_undirected: bool = True,
+        sample: Optional[float] = None,
         **kwargs,
     ) -> None:
         self.data = data
@@ -184,6 +187,7 @@ class ArtGraphInductivePruner:
         self.source = self._load_data(source, **source_kwargs)
         self.add_self_loops = add_self_loops
         self.to_undirected = to_undirected
+        self.sample = sample
 
     def _get_pruned_artworks(self) -> dict[int, int]:
         pruned_artworks = (
@@ -193,9 +197,18 @@ class ArtGraphInductivePruner:
                 left_on=MappingKeys.ARTWORK,
                 right_on=MappingKeys.NAME,
             )
-            .sort_values(by=MappingKeys.IDX)[MappingKeys.IDX]
-            .tolist()
+            # .sort_values(by=MappingKeys.IDX)[MappingKeys.IDX]
+            # .tolist()
         )
+        if self.sample is not None:
+            pruned_artworks = train_test_split(
+                pruned_artworks,
+                test_size=self.sample,
+                stratify=pruned_artworks[MappingKeys.STYLE],
+            )[1]
+        pruned_artworks = pruned_artworks.sort_values(by=MappingKeys.IDX)[
+            MappingKeys.IDX
+        ].tolist()
         return {old_idx: new_idx for (new_idx, old_idx) in enumerate(pruned_artworks)}
 
     def transform(self) -> torch_geometric.data.HeteroData:
