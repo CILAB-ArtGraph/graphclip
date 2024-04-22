@@ -43,13 +43,18 @@ class CLIPGraphRun(CLIPRun):
         return torch.load(**graph_params)
 
     def set_model_parameters_for_warmup(self, current_epoch: int) -> None:
+        # start setting ViT parameters freezed
         for p in self.model.visual.parameters():
-            p.requires_grad = current_epoch > self.warmup_lblock_epochs
+            p.requires_grad = False 
 
-        for p in self.model.visual.transformer.resblocks[-1].parameters():
+        # let always gnn parameters to be twiched
+        for p in self.model.gnn.parameters():
             p.requires_grad = True
 
-        for p in self.model.gnn.parameters():
+        if current_epoch < self.warmup_lblock_epochs:
+            return
+        start_block = (len(self.model.visual.transformer.resblocks) - 1) - ((current_epoch - self.warmup_lblock_epochs) % 2)
+        for p in self.model.visual.transformer.resblocks[start_block: ].parameters():
             p.requires_grad = True
 
     def train_epoch(self, epoch):
