@@ -58,7 +58,7 @@ dataset:
           model_name: *vit
           pretrained: *pretrain
 dataloader:
-  batch_size: 1024
+  batch_size: 256
   shuffle: True
   drop_last: False
   num_workers: 8
