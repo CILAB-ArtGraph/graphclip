@@ -5,10 +5,10 @@ from open_clip import create_model
 from copy import deepcopy
 from .utils import ParameterKeys
 from torch_geometric.nn.models.basic_gnn import BasicGNN
-import torch_geometric.nn
 from torch_geometric.data import HeteroData
 import torch
 from src.data.utils import DataDict
+import src.models.graph as graph_module
 
 
 class CLIPGraphRun(CLIPRun):
@@ -34,7 +34,7 @@ class CLIPGraphRun(CLIPRun):
         gnn_params = deepcopy(
             self.parameters.get(ParameterKeys.MODEL).get(ParameterKeys.GNN)
         )
-        all_nets = torch_geometric.nn.__dict__
+        all_nets = graph_module.__dict__
         net = all_nets[gnn_params.get(ParameterKeys.NAME)]
         return net(**gnn_params.get(ParameterKeys.PARAMS, {}))
 
