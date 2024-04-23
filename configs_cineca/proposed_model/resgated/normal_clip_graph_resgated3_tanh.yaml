@@ -93,7 +93,7 @@ metrics:
       num_classes: 32
       average: macro
 device: &device cuda
-out_dir: models/normal_clip_graph_gat3
+out_dir: models/normal_clip_graph_resgated3_tanh
 warmup: 10
 num_epochs: 50
 bar: True
