@@ -93,3 +93,6 @@ target/
 src/visualization/*.ipynb
 
 models/*
+
+# ignore out files
+*.out
