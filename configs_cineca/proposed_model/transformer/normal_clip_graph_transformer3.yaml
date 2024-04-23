@@ -11,6 +11,7 @@ model:
       num_layers: 3
       dropout: 0.25
       heads: 4
+      concat: False
       beta: True
       act: LeakyReLU
       act_kwargs:
