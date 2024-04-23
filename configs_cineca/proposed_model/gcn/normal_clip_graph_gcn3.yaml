@@ -10,6 +10,7 @@ model:
       hidden_channels: 512
       num_layers: 3
       dropout: 0.25
+      add_self_loops: False
       act: LeakyReLU
       act_kwargs:
         negative_slope: -0.2
