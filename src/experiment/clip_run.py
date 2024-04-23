@@ -271,7 +271,7 @@ class CLIPRun(Run):
     def launch(self):
         print("Start experiment!")
         self.model = self.model.to(self.device)
-        for epoch in range(1, self.num_epochs + 1):
+        for epoch in range(40, self.num_epochs + 1):
             self.set_model_parameters_for_warmup(current_epoch=epoch)
             self.train_epoch(epoch=epoch)
             self.validate_epoch(epoch)
