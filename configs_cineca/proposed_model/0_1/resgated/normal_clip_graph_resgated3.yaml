@@ -14,9 +14,10 @@ model:
       act_kwargs:
         negative_slope: 0.2
       layer_act: Sigmoid
-      norm: HeteroLayerNorm
+      norm: LayerNorm
       norm_kwargs:
-        num_types: 1
+        mode: node
+        affine: False
   params:
     target_node_t: style
     use_logit_scale: True
