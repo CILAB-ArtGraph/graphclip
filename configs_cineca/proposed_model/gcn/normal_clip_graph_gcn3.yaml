@@ -4,13 +4,12 @@ model:
     pretrained: &pretrain laion2b_s34b_b79k
     output_dict: True
   gnn:
-    name: GCN
+    name: GraphSAGE
     params:
       in_channels: 512
       hidden_channels: 512
       num_layers: 3
       dropout: 0.25
-      add_self_loops: False
       act: LeakyReLU
       act_kwargs:
         negative_slope: -0.2
