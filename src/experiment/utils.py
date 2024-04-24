@@ -35,3 +35,4 @@ class ParameterKeys(StrEnum):
     VALIDATION = "validation"
     VISUAL = "visual"
     GNN = "gnn"
+    CLEAN_OUT_DIR = "clean_out_dir"

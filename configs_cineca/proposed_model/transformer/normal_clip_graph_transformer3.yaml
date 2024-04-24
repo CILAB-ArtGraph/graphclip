@@ -102,6 +102,7 @@ metrics:
       average: macro
 device: &device cuda
 out_dir: models/normal_clip_graph_transformer3
+clean_out_dir: True
 warmup: 10
 num_epochs: 50
 bar: True

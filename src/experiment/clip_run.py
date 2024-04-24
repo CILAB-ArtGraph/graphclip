@@ -142,6 +142,10 @@ class CLIPRun(Run):
         self.out_dir = self.parameters.get(
             ParameterKeys.OUT_DIR, ParameterKeys.DEF_OUT_DIR
         )
+        self.clean_out_dir = self.parameters.get(ParameterKeys.CLEAN_OUT_DIR, False)
+        if self.clean_out_dir:
+            for f in os.listdir(self.out_dir):
+                os.remove(f"{self.out_dir}/{f}")
         os.makedirs(self.out_dir, exist_ok=True)
         self.warmup_lblock_epochs = self.parameters.get(
             ParameterKeys.WARMUP_EPOCHS, ParameterKeys.DEF_WARMUP_EPOCHS
