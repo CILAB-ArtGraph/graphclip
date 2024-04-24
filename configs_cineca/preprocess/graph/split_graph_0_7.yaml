@@ -1,5 +1,5 @@
 data:
-  root: data/external/artgraph2bestemotions/
+  root: data/external/artgraph2bestemotions
   vis_feats_root: /leonardo_scratch/fast/IscrC_DIANA/ext/contrastive-artwork-classification/visual_embeddings
   label_feats_root: /leonardo_scratch/fast/IscrC_DIANA/ext/contrastive-artwork-classification/data/label_embeddings
 pruner:
