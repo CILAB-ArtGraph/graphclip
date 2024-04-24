@@ -4,16 +4,13 @@ model:
     pretrained: &pretrain laion2b_s34b_b79k
     output_dict: True
   gnn:
-    name: GAT
+    name: GraphSAGE
     params:
       in_channels: 512
       hidden_channels: 512
       num_layers: 2
-      add_self_loops: False
-      v2: True
       dropout: 0.25
-      heads: 4
-      concat: False
+      project: True
       act: LeakyReLU
       act_kwargs:
         negative_slope: 0.2
@@ -102,11 +99,11 @@ metrics:
       num_classes: 32
       average: macro
 device: &device cuda
-out_dir: models/normal_clip_graph_gat2
+out_dir: models/0_3/normal_clip_graph_gcn2
 clean_out_dir: True
 warmup: 10
 num_epochs: 50
 bar: True
 class_source:
-  f: data/processed/graph/train_graph.pt
+  f: data/processed/graph/0_3/train_graph.pt
   map_location: *device

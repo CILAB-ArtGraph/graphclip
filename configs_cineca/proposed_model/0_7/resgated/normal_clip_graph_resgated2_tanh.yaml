@@ -4,16 +4,16 @@ model:
     pretrained: &pretrain laion2b_s34b_b79k
     output_dict: True
   gnn:
-    name: GraphSAGE
+    name: ResGatedGNN
     params:
       in_channels: 512
       hidden_channels: 512
       num_layers: 2
       dropout: 0.25
-      project: True
       act: LeakyReLU
       act_kwargs:
         negative_slope: 0.2
+      layer_act: Tanh
       norm: HeteroLayerNorm
       norm_kwargs:
         num_types: 1
@@ -99,11 +99,11 @@ metrics:
       num_classes: 32
       average: macro
 device: &device cuda
-out_dir: models/normal_clip_graph_gcn2
+out_dir: models/0_7/normal_clip_graph_resgated2_tanh
 clean_out_dir: True
 warmup: 10
 num_epochs: 50
 bar: True
 class_source:
-  f: data/processed/graph/train_graph.pt
+  f: data/processed/graph/0_7/train_graph.pt
   map_location: *device

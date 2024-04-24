@@ -1,0 +1,108 @@
+model:
+  visual:
+    model_name: &vit ViT-B-32
+    pretrained: &pretrain laion2b_s34b_b79k
+    output_dict: True
+  gnn:
+    name: GraphSAGE
+    params:
+      in_channels: 512
+      hidden_channels: 512
+      num_layers: 3
+      dropout: 0.25
+      act: LeakyReLU
+      act_kwargs:
+        negative_slope: 0.2
+      norm: HeteroLayerNorm
+      norm_kwargs:
+        num_types: 1
+  params:
+    target_node_t: style
+    use_logit_scale: True
+dataset:
+  train:
+    name: &clip_class ImageGraphDataset
+    params:
+      dataset: data/processed/normal/artgraph_clip/train.csv
+      img_dir: &images data/raw/images-resized
+      graph_style_mapping: &styles data/external/artgraph2bestemotions/mapping/style_entidx2name.csv
+      mapping_kwargs:
+        names: [idx, style]
+      preprocess:
+        name: &clip clip
+        params: 
+          model_name: *vit
+          pretrained: *pretrain
+  val:
+    name: *clip_class
+    params:
+      dataset: data/processed/normal/artgraph_clip/val.csv
+      img_dir: *images
+      graph_style_mapping: *styles
+      mapping_kwargs:
+        names: [idx, style]
+      preprocess:
+        name: *clip
+        params: 
+          model_name: *vit
+          pretrained: *pretrain
+  test:
+    name: ImageTextDatset
+    params:
+      dataset: data/processed/normal/artgraph_clip/test.csv
+      img_dir: *images
+      preprocess: 
+        name: *clip
+        params:
+          model_name: *vit
+          pretrained: *pretrain
+dataloader:
+  batch_size: 256
+  shuffle: True
+  drop_last: False
+  num_workers: 8
+criterion:
+  name: CLIPImageGraphLoss
+  params:
+    return_logits: True
+optimizer:
+  name: Adam
+  params:
+    lr: 1e-5
+scheduler:
+  name: HuggingFaceCosineScheduler
+  params:
+    num_warmup_steps: 1000
+early_stop:
+  name: EarlyStopping
+  params:
+    verbose: True
+    patience: 10
+metrics:
+  top1:
+    name: Accuracy
+    params:
+      task: &task multiclass
+      num_classes: 32
+      top_k: 1
+  top2:
+    name: Accuracy
+    params:
+      task: *task
+      num_classes: 32
+      top_k: 2
+  f1score:
+    name: F1Score
+    params:
+      task: *task
+      num_classes: 32
+      average: macro
+device: &device cuda
+out_dir: models/1_0/normal_clip_graph_gcn3
+clean_out_dir: True
+warmup: 10
+num_epochs: 50
+bar: True
+class_source:
+  f: data/processed/graph/1_0/train_graph.pt
+  map_location: *device
