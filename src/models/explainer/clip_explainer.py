@@ -26,14 +26,14 @@ def text_global_pool(x, text: torch.Tensor = None, pool_type: str = "argmax"):
 
 
 class VisualWrapperForExplanation(torch.nn.Module):
-    def __init__(self, model: CLIP, text_reference_feat: torch.Tensor) -> None:
+    def __init__(self, model: CLIP, reference_feat: torch.Tensor) -> None:
         super().__init__()
         self.backbone = model
         self.fake_head = torch.nn.Linear(
-            in_features=text_reference_feat.size(1),
-            out_features=text_reference_feat.size(0),
+            in_features=reference_feat.size(1),
+            out_features=reference_feat.size(0),
         )
-        text_p = text_reference_feat.clone().detach().cpu()
+        text_p = reference_feat.clone().detach().cpu()
         self.fake_head.weight = torch.nn.Parameter(
             data=text_p,
         )
@@ -116,13 +116,13 @@ class CLIPExplainer(AbstractExplainer):
         self,
         img_path: str,
         model: CLIP,
-        text_reference_feats: torch.Tensor,
+        reference_feats: torch.Tensor,
         target: int,
         overlayed: bool = True,
     ):
         # apply gradcam to the image
         vis_wrap_model = VisualWrapperForExplanation(
-            model=model, text_reference_feat=text_reference_feats
+            model=model, reference_feat=reference_feats
         ).to(self.device)
         gradcam = GradCAM(model=vis_wrap_model)
         cam = apply_gradcam(

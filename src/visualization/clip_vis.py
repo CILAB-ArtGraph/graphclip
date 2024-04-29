@@ -170,7 +170,7 @@ def main():
         overlayed_img = explainer.explain_image(
             img_path=img_pth,
             model=run.model,
-            text_reference_feats=out[SessionStateKey.TXT_FEATS],
+            reference_feats=out[SessionStateKey.TXT_FEATS],
             target=pred_idx,
             overlayed=True,
         )
