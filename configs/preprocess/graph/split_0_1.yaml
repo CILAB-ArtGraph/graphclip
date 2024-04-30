@@ -1,7 +1,8 @@
+
 data:
   root: data/external/artgraph2bestemotions
-  vis_feats_root: /leonardo_scratch/fast/IscrC_DIANA/ext/contrastive-artwork-classification/visual_embeddings
-  label_feats_root: /leonardo_scratch/fast/IscrC_DIANA/ext/contrastive-artwork-classification/data/label_embeddings
+  vis_feats_root: /home/raffaele/ext/contrastive-artwork-classification/visual_embeddings
+  label_feats_root: /home/raffaele/ext/contrastive-artwork-classification/data/label_embeddings
 pruner:
   mapping: data/external/artgraph2bestemotions/mapping/artwork_entidx2name.csv
   source: data/processed/normal/artgraph_clip/train.csv
@@ -9,4 +10,4 @@ pruner:
     names: [idx, name]
   sample: .3
   random_state: 42
-out_dir: data/processed/graph/0_3
+out_dir: data/processed/graph/0_1

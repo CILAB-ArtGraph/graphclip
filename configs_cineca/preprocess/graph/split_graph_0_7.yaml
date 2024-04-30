@@ -8,4 +8,5 @@ pruner:
   mapping_kwargs: 
     names: [idx, name]
   sample: .7
+  random_state: 42
 out_dir: data/processed/graph/0_7
