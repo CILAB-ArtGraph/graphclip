@@ -38,7 +38,7 @@ class CLIPGraphExplainer(AbstractExplainer):
     ) -> None:
         super().__init__()
         self.device = device
-        self.image_preprocess = self._get_image_preprocess
+        self.image_preprocess = self._get_image_preprocess(image_preprocess=image_preprocess)
 
     def _get_image_preprocess(self, image_preprocess: Union[str, Compose]) -> Compose:
         if isinstance(image_preprocess, Compose):
