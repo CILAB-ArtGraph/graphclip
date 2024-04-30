@@ -180,6 +180,7 @@ class ArtGraphInductivePruner:
         add_self_loops: bool = True,
         to_undirected: bool = True,
         sample: Optional[float] = None,
+        random_state: Optional[int] = None,
         **kwargs,
     ) -> None:
         self.data = data
@@ -188,23 +189,21 @@ class ArtGraphInductivePruner:
         self.add_self_loops = add_self_loops
         self.to_undirected = to_undirected
         self.sample = sample
+        self.random_state = random_state
 
     def _get_pruned_artworks(self) -> dict[int, int]:
-        pruned_artworks = (
-            pd.merge(
-                left=self.source,
-                right=self.mapping,
-                left_on=MappingKeys.ARTWORK,
-                right_on=MappingKeys.NAME,
-            )
-            # .sort_values(by=MappingKeys.IDX)[MappingKeys.IDX]
-            # .tolist()
+        pruned_artworks = pd.merge(
+            left=self.source,
+            right=self.mapping,
+            left_on=MappingKeys.ARTWORK,
+            right_on=MappingKeys.NAME,
         )
         if self.sample is not None:
             pruned_artworks = train_test_split(
                 pruned_artworks,
                 test_size=self.sample,
                 stratify=pruned_artworks[MappingKeys.STYLE],
+                random_state=self.random_state,
             )[1]
         pruned_artworks = pruned_artworks.sort_values(by=MappingKeys.IDX)[
             MappingKeys.IDX
@@ -240,7 +239,7 @@ class ArtGraphInductivePruner:
         if self.to_undirected:
             out_data = ToUndirected()(out_data)
 
-        return out_data
+        return out_data, artwork_mapping
 
     def _load_data(self, data: Union[str, pd.DataFrame], **kwargs) -> pd.DataFrame:
         return data if isinstance(data, pd.DataFrame) else pd.read_csv(data, **kwargs)
