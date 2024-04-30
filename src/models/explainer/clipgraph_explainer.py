@@ -12,7 +12,7 @@ import torch
 
 
 class GraphWrapperForExplanation(torch.nn.Module):
-    def __init__(self, model: CLIPGraph, reference_feats: torch.Tensor) -> None:
+    def __init__(self, model: CLIPGraph, reference_feats: torch.Tensor, target_node: int) -> None:
         super().__init__()
         self.backbone = model
         self.fake_head = torch.nn.Linear(
@@ -21,11 +21,12 @@ class GraphWrapperForExplanation(torch.nn.Module):
         )
         data_p = reference_feats.clone().detach().cpu()
         self.fake_head.weight = torch.nn.Parameter(data=data_p)
+        self.target_node = target_node
 
     def forward(self, x_dict, edge_index_dict):
         nodes = self.backbone.encode_graph(
             x_dict=x_dict, edge_index_dict=edge_index_dict
-        )
+        )[self.target_node].unsqueeze(dim=0)
         return self.fake_head(nodes)
 
 
