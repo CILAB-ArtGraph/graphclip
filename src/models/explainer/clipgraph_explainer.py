@@ -12,7 +12,9 @@ import torch
 
 
 class GraphWrapperForExplanation(torch.nn.Module):
-    def __init__(self, model: CLIPGraph, reference_feats: torch.Tensor, target_node: int) -> None:
+    def __init__(
+        self, model: CLIPGraph, reference_feats: torch.Tensor, target_node: int
+    ) -> None:
         super().__init__()
         self.backbone = model
         self.fake_head = torch.nn.Linear(
@@ -77,13 +79,15 @@ class CLIPGraphExplainer(AbstractExplainer):
         model: CLIPGraph,
         graph: Data | HeteroData,
         reference_feats: torch.Tensor,
+        target_node: int,
         algo: ExplainerAlgorithm,
         algo_kwargs={},
         plot: bool = False,
     ):
         graph_model_wrap = GraphWrapperForExplanation(
-            model=model, reference_feats=reference_feats
+            model=model,
+            reference_feats=reference_feats,
+            target_node=target_node,
         ).to(self.device)
         explainer = Explainer(model=graph_model_wrap, algorithm=algo, **algo_kwargs)
-        explanation = explainer(graph.x_dict, edge_index=graph.edge_index_dict)
-        return explanation if not plot else explanation.visualize_graph()
+        return explainer(graph.x_dict, edge_index=graph.edge_index_dict)
