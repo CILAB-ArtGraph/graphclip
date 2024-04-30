@@ -6,6 +6,7 @@ from .load_artgraph import ArtGraph
 import pandas as pd
 import os
 import torch
+import json
 
 
 def download_artgraph(parameters):
@@ -67,10 +68,12 @@ def split_normal(
 def split_graph(parameters: dict):
     data_params = parameters.get("data")
     data = ArtGraph(**data_params)[0]
-    out_data = ArtGraphInductivePruner(data=data, **parameters.get("pruner")).transform()
+    out_data, artwork_mapping = ArtGraphInductivePruner(data=data, **parameters.get("pruner")).transform()
     out_dir = parameters.get("out_dir")
     os.makedirs(out_dir, exist_ok=True)
     torch.save(out_data, f"{out_dir}/train_graph.pt")
+    with open(f"{out_dir}/artwork_mapping.json", "w+") as f:
+        json.dump(artwork_mapping, f)
 
 
 def split(parameters: dict, graph: bool = False):
