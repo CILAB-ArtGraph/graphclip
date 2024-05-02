@@ -11,6 +11,7 @@ from .gradcam import apply_gradcam, visualize_gradcam, GradCAM
 import torch
 from copy import deepcopy
 from yfiles_jupyter_graphs import GraphWidget
+from neo4j import Driver
 
 
 class GraphWrapperForExplanation(torch.nn.Module):
@@ -40,6 +41,8 @@ class CLIPGraphExplainer(AbstractExplainer):
         device: str = "cuda",
         image_preprocess: Union[str, Compose] = "clip",
         mappings: dict = None,
+        neo4j_driver: Driver = None,
+        neo4j_db: str = None,
     ) -> None:
         super().__init__()
         self.device = device
@@ -47,6 +50,8 @@ class CLIPGraphExplainer(AbstractExplainer):
             image_preprocess=image_preprocess
         )
         self.mappings = mappings
+        self.neo4j_driver = neo4j_driver
+        self.neo4jdb = neo4j_db
 
     def _get_image_preprocess(self, image_preprocess: Union[str, Compose]) -> Compose:
         if isinstance(image_preprocess, Compose):
@@ -82,6 +87,16 @@ class CLIPGraphExplainer(AbstractExplainer):
             else visualize_gradcam(image_path=img_path, gweights=cam)
         )
 
+    def get_neo4j_info(self, node):
+        if self.neo4j_driver is None:
+            return node
+        with self.neo4j_driver.session(database=self.neo4jdb) as session:
+            ans = session.run(
+                f"match (n:{node.get('properties').get('type').capitalize()} {{name: '{node.get('properties').get('label')}' }}) return n"
+            ).data()[0]["n"]
+        node["properties"].update({"neo4j": ans})
+        return node
+
     def set_node_info(self, node):
         if not self.mappings:
             return node
@@ -89,6 +104,8 @@ class CLIPGraphExplainer(AbstractExplainer):
         node["properties"]["label"] = self.mappings.get(node_prop.get("type")).get(
             node_prop.get("idx")
         )
+        # TODO: add neo4j information about the nodes
+        node = self.get_neo4j_info(node)
         return node
 
     def plot_explanation(
@@ -144,7 +161,7 @@ class CLIPGraphExplainer(AbstractExplainer):
             for (h_t, _, t_t) in subgraph_edges.keys()
             for (h_idx, t_idx) in subgraph_edges[(h_t, _, t_t)]
         ]
-        w.edge_color_mapping = lambda: 'grey'
+        w.edge_color_mapping = lambda: "grey"
 
         w.tree_layout()
 
