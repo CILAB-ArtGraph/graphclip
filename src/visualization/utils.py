@@ -19,3 +19,4 @@ class SessionStateKey(StrEnum):
     TXT_PROMPTS = "txt_prompts"
     SAFE_HTML = "unsafe_allow_html"
     VIS = "vis"
+    GRAPH_FEATS = "graph_feats"
