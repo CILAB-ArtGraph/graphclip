@@ -36,13 +36,17 @@ class GraphWrapperForExplanation(torch.nn.Module):
 
 class CLIPGraphExplainer(AbstractExplainer):
     def __init__(
-        self, device: str = "cuda", image_preprocess: Union[str, Compose] = "clip"
+        self,
+        device: str = "cuda",
+        image_preprocess: Union[str, Compose] = "clip",
+        mappings: dict = None,
     ) -> None:
         super().__init__()
         self.device = device
         self.image_preprocess = self._get_image_preprocess(
             image_preprocess=image_preprocess
         )
+        self.mappings = mappings
 
     def _get_image_preprocess(self, image_preprocess: Union[str, Compose]) -> Compose:
         if isinstance(image_preprocess, Compose):
@@ -78,6 +82,15 @@ class CLIPGraphExplainer(AbstractExplainer):
             else visualize_gradcam(image_path=img_path, gweights=cam)
         )
 
+    def set_node_info(self, node):
+        if not self.mappings:
+            return node
+        node_prop = node.get("properties")
+        node["properties"]["label"] = self.mappings.get(node_prop.get("type")).get(
+            node_prop.get("idx")
+        )
+        return node
+
     def plot_explanation(
         self,
         explanation: HeteroExplanation,
@@ -91,10 +104,12 @@ class CLIPGraphExplainer(AbstractExplainer):
 
         # nodes
         w.nodes = [
-            {"id": f"{t}_{idx}", "properties": {"label": t}}
+            {"id": f"{t}_{idx}", "properties": {"type": t, "idx": idx}}
             for t in subgraph_nodes.keys()
             for idx in subgraph_nodes[t]
         ]
+
+        w.nodes = [self.set_node_info(n) for n in w.nodes]
 
         colors = [
             # yellow
@@ -122,13 +137,16 @@ class CLIPGraphExplainer(AbstractExplainer):
         ] * 3
 
         color_map = {node: color for node, color in zip(metadata[0], colors)}
-        w.set_node_color_mapping(lambda x: color_map[x["properties"]["label"]])
+        w.set_node_color_mapping(lambda x: color_map[x["properties"]["type"]])
 
         w.edges = [
             {"start": f"{h_t}_{h_idx}", "end": f"{t_t}_{t_idx}"}
             for (h_t, _, t_t) in subgraph_edges.keys()
             for (h_idx, t_idx) in subgraph_edges[(h_t, _, t_t)]
         ]
+        w.edge_color_mapping = lambda: 'grey'
+
+        w.tree_layout()
 
         return w
 
