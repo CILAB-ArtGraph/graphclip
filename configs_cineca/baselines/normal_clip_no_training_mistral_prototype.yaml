@@ -31,23 +31,24 @@ metrics:
   top1:
     name: Accuracy
     params:
-      task: &task multiclass
+      task: &task_metric multiclass
       num_classes: 32
       top_k: 1
   top2:
     name: Accuracy
     params:
-      task: *task
+      task: *task_metric
       num_classes: 32
       top_k: 2
   f1score:
     name: F1Score
     params:
-      task: *task
+      task: *task_metric
       num_classes: 32
       average: macro
 bar: True
 device: cuda
 out_dir: models/normal_clip_no_training_mistral_prototype
 class_source: data/processed/styles_mistral_prototype.csv
-key: style
+key: &task style
+task: *task

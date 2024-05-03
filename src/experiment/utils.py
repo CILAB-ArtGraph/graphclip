@@ -36,3 +36,6 @@ class ParameterKeys(StrEnum):
     VISUAL = "visual"
     GNN = "gnn"
     CLEAN_OUT_DIR = "clean_out_dir"
+    TASK = "task"
+    DEF_TASK = "style"
+    

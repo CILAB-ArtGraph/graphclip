@@ -152,6 +152,7 @@ class CLIPRun(Run):
         )
         self.num_epochs = self.parameters.get(ParameterKeys.NUM_EPOCHS, 0)
         self.bar = self.parameters.get(ParameterKeys.BAR, False)
+        self.task = self.parameters.get(ParameterKeys.TASK, ParameterKeys.DEF_TASK)
         self.trigger = False
 
     def schedule(self, phase, **kwargs):
@@ -290,10 +291,10 @@ class CLIPRun(Run):
         self, classes: list[str], source: str = None, key: str = None
     ) -> list[str]:
         if not source:
-            return [f"This artwork is in {x} artistic style" for x in classes]
-        key = key if key else "style"
-        styles = pd.read_csv(source).set_index(key)
-        return [styles.loc[x].summary for x in classes]
+            return [f"This artwork is in {x} artistic {self.task}" for x in classes]
+        key = key if key else self.task
+        classes_kb = pd.read_csv(source).set_index(key)
+        return [classes_kb.loc[x].summary for x in classes]
 
     def get_class_maps(self, classes, source: str = None, key: str = None):
         classes = list(sorted(list(set(deepcopy(classes)))))
