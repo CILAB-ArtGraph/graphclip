@@ -121,7 +121,7 @@ class ViTRun(CLIPRun):
 
         for ix, data_dict in bar:
             imgs = data_dict[DataDict.IMAGE].to(self.device)
-            gts = data_dict[DataDict.GTS].to(self.device)
+            gts = data_dict[DataDict.GTS]
 
             out = self.model(imgs)
             out = out.detach().cpu()
