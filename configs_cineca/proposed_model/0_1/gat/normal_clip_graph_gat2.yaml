@@ -109,7 +109,7 @@ metrics:
       num_classes: 32
       average: macro
 device: cuda
-out_dir: models/0_1/normal_clip_graph_gat2_test
+out_dir: models/0_1/normal_clip_graph_gat2
 clean_out_dir: true
 warmup: 10
 num_epochs: 50
