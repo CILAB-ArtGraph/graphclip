@@ -32,16 +32,19 @@ def download_artgraph(parameters):
 
 def split_normal(
     dataset_path: str,
-    label_column: str,
     val_size: float,
     test_size: float,
     outdir: str,
     stratification: bool = True,
     random_state: int = None,
+    columns_to_drop: list[str] = None,
+    label_column: str = None,
     out_args: dict = {},
     **kwargs,
 ):
     dataset = pd.read_csv(dataset_path, **kwargs)
+    if columns_to_drop is not None:
+        dataset = dataset.drop(columns_to_drop, axis=1)
     val_num = int(len(dataset) * val_size)
     test_num = int(len(dataset) * test_size)
 
@@ -68,7 +71,9 @@ def split_normal(
 def split_graph(parameters: dict):
     data_params = parameters.get("data")
     data = ArtGraph(**data_params)[0]
-    out_data, artwork_mapping = ArtGraphInductivePruner(data=data, **parameters.get("pruner")).transform()
+    out_data, artwork_mapping = ArtGraphInductivePruner(
+        data=data, **parameters.get("pruner")
+    ).transform()
     out_dir = parameters.get("out_dir")
     os.makedirs(out_dir, exist_ok=True)
     torch.save(out_data, f"{out_dir}/train_graph.pt")

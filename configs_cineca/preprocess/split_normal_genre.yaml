@@ -1,7 +1,9 @@
 dataset_path: data/raw/artgraph_dataset.csv
 val_size: 0.2
 test_size: 0.1
-outdir: data/processed/normal/artgraph_clip_multitask
+outdir: data/processed/normal/artgraph_clip_genre
+columns_to_drop: 
+  - style 
 out_args:
   index: False
 stratification: False
