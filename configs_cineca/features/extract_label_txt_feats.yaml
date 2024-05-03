@@ -11,7 +11,8 @@ dataloader:
   batch_size: 128
   drop_last: False
   shuffle: False
-out_dir: /ext/raffaele/contrastive-artwork-classification/data/label_embeddings
+out_dir: /home/raffaele/ext/contrastive-artwork-classification/data/label_embeddings2
 device: cuda
 source:
   style: data/processed/styles_mistral.csv
+  genre: data/processed/genres_mistral.csv
