@@ -30,7 +30,7 @@ def launch_experiment(parameters, run_cls: Run):
 def run_experiment(parameters, graph: bool = False, ablation: bool = False):
     if ablation:
         run_cls = ViTRun
-    elif not graph:
+    elif graph:
         run_cls = CLIPGraphRun
     else:
         run_cls = CLIPRun

@@ -63,17 +63,26 @@ class CLIPDataset(ImageTextDatset):
     def __init__(
         self,
         dataset: Union[str, pd.DataFrame],
-        styles: Union[str, pd.DataFrame],
+        target: Union[str, pd.DataFrame],
         img_dir: str,
         preprocess: Optional[Union[Compose, dict, str]] = None,
         preprocess_classes: Optional[dict] = None,
+        target_col: Optional[str] = DataDict.STYLE,
         **kwargs,
     ):
         super().__init__(dataset, img_dir, preprocess, **kwargs)
-        self.styles = self._init_dataset(dataset=styles, **kwargs)
-        self.idx2style = {k: v for k, v in self.styles[DataDict.STYLE].items()}
-        self.style2idx = {v: k for k, v in self.idx2style.items()}
+        self.target = self._init_dataset(dataset=target, **kwargs)
+        self.target_col = target_col
+        self.target_col = self.get_target_col_name()
+        self.idx2class = {k: v for k, v in self.target[self.target_col].items()}
+        self.class2idx = {v: k for k, v in self.idx2class.items()}
         self.preprocess_cls = self._init_cls_preprocess(preprocess_classes)
+
+    def get_target_col_name(self):
+        if isinstance(self.target_col, str):
+            return self.target_col
+        assert isinstance(self.target_col, int)
+        return self.target.columns[self.target_col]
 
     def _init_cls_preprocess(self, cls_preprocess: Optional[dict] = None) -> list:
         if not cls_preprocess:
@@ -102,12 +111,12 @@ class CLIPDataset(ImageTextDatset):
         batch_images = torch.stack(images)
         
         # collate texts
-        classes_idxs = [self.style2idx[x] for x in classes]
+        classes_idxs = [self.class2idx[x] for x in classes]
         unique_classes = list(set(classes_idxs))
         class2batch = {v: k for k, v in enumerate(unique_classes)}
         
         # get summaries
-        summaries = self.styles.loc[unique_classes, DataDict.SUMMARY].tolist()
+        summaries = self.target.loc[unique_classes, DataDict.SUMMARY].tolist()
         
         # augment summaries
         aug_summaries = self.augment_texts(summaries)
