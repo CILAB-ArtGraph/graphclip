@@ -11,23 +11,23 @@ class ImageGraphDataset(ImageTextDatset):
         self,
         dataset: Union[str, pd.DataFrame],
         img_dir: str,
-        graph_style_mapping: Union[str, pd.DataFrame],
+        graph_class_mapping: Union[str, pd.DataFrame],
+        mapping_target_col: Union[str, int],
         preprocess: Optional[Union[str, dict, Compose]] = None,
         mapping_kwargs: Optional[dict] = {},
         **kwargs,
     ) -> None:
         super().__init__(dataset, img_dir, preprocess, **kwargs)
-        self.graph_style_mapping = self._init_dataset(
-            dataset=graph_style_mapping, **mapping_kwargs
+        self.graph_class_mapping = self._init_dataset(
+            dataset=graph_class_mapping, **mapping_kwargs
         )
-        assert (
-            DataDict.STYLE in self.graph_style_mapping.columns
-        ), f"{DataDict.STYLE} must be in mapping columns"
+        self.mapping_target_col = mapping_target_col
 
-        self.idx2style = {
-            k: v[DataDict.STYLE] for k, v in self.graph_style_mapping.iterrows()
+        self.idx2class = {
+            k: v[self.mapping_target_col]
+            for k, v in self.graph_class_mapping.iterrows()
         }
-        self.style2idx = {v: k for k, v in self.idx2style.items()}
+        self.class2idx = {v: k for k, v in self.idx2class.items()}
 
     def collate_fn(self, batched_input: list[dict[str, Any]]) -> dict[str, Any]:
         # get all images and classes in the batch
@@ -38,7 +38,7 @@ class ImageGraphDataset(ImageTextDatset):
         batch_images = torch.stack(images)
 
         # collate classes
-        classes_idxs = [self.style2idx[x] for x in classes]
+        classes_idxs = [self.class2idx[x] for x in classes]
         unique_classes = list(set(classes_idxs))
         class2batch = {v: k for k, v in enumerate(unique_classes)}
 

@@ -150,7 +150,7 @@ class CLIPGraphRun(CLIPRun):
         )
 
     def get_class_maps(self):
-        return self.train_loader.dataset.style2idx, self.train_loader.dataset.idx2style
+        return self.train_loader.dataset.class2idx, self.train_loader.dataset.idx2class
 
     @torch.no_grad()
     def test(self) -> dict[str, float]:
