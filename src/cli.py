@@ -44,7 +44,8 @@ def test(parameters):
 @main.command("experiment")
 @click.option("--parameters", help="Path to parameters file")
 @click.option("--graph", is_flag=True, default=False)
-def experiment(parameters, graph):
+@click.option("--ablation", is_flag=True, default=False)
+def experiment(parameters, graph, ablation):
     from src.experiment import run_experiment
 
-    run_experiment(load_ruamel(parameters), graph)
+    run_experiment(load_ruamel(parameters), graph, ablation)

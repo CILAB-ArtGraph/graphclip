@@ -1,0 +1,82 @@
+model:
+  model:
+    model_name: &vit ViT-B-32
+    pretrained: &pretrain laion2b_s34b_b79k
+  params:
+    out_channels: &num_styles 32
+    dropout: 0.25
+dataset:
+  train:
+    name: &vit_class ImageDataset
+    params:
+      dataset: data/processed/normal/artgraph_clip/train.csv
+      img_dir: &images data/raw/images-resized
+      preprocess:
+        name: &clip clip
+        params: 
+          model_name: *vit
+          pretrained: *pretrain
+  val:
+    name: *vit_class
+    params:
+      dataset: data/processed/normal/artgraph_clip/val.csv
+      img_dir: *images
+      preprocess:
+        name: *clip
+        params: 
+          model_name: *vit
+          pretrained: *pretrain
+  test:
+    name: *vit_class
+    params:
+      dataset: data/processed/normal/artgraph_clip/test.csv
+      img_dir: *images
+      preprocess: 
+        name: *clip
+        params:
+          model_name: *vit
+          pretrained: *pretrain
+dataloader:
+  batch_size: 32
+  shuffle: True
+  drop_last: False
+  num_workers: 8
+criterion:
+  name: CrossEntropyLoss
+optimizer:
+  name: Adam
+  params:
+    lr: 1e-5
+scheduler:
+  name: HuggingFaceCosineScheduler
+  params:
+    num_warmup_steps: 1000
+early_stop:
+  name: EarlyStopping
+  params:
+    verbose: True
+    patience: 10
+metrics:
+  top1:
+    name: Accuracy
+    params:
+      task: &task multiclass
+      num_classes: *num_styles
+      top_k: 1
+  top2:
+    name: Accuracy
+    params:
+      task: *task
+      num_classes: *num_styles
+      top_k: 2
+  f1score:
+    name: F1Score
+    params:
+      task: *task
+      num_classes: *num_styles
+      average: macro
+device: cuda
+out_dir: models/ablations/vit
+num_epochs: 50
+bar: True
+    
