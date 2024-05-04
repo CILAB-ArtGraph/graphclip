@@ -8,9 +8,9 @@ dataset:
   train:
     name: &clip_class CLIPDataset
     params:
-      dataset: data/processed/normal/artgraph_clip/train.csv
+      dataset: data/processed/normal/artgraph_clip_genre/train.csv
       img_dir: &images data/raw/images-resized
-      target: &styles data/processed/styles_naive.csv
+      target: &styles data/processed/genres_mistral.csv
       target_col: style
       preprocess:
         name: &clip clip
@@ -27,7 +27,7 @@ dataset:
   val:
     name: *clip_class
     params:
-      dataset: data/processed/normal/artgraph_clip/val.csv
+      dataset: data/processed/normal/artgraph_clip_genre/val.csv
       img_dir: *images
       target: *styles
       target_col: style
@@ -39,7 +39,7 @@ dataset:
   test:
     name: ImageTextDatset
     params:
-      dataset: data/processed/normal/artgraph_clip/test.csv
+      dataset: data/processed/normal/artgraph_clip_genre/test.csv
       img_dir: *images
       preprocess: 
         name: *clip
@@ -73,22 +73,22 @@ metrics:
     name: Accuracy
     params:
       task: &task multiclass
-      num_classes: 32
+      num_classes: 18
       top_k: 1
   top2:
     name: Accuracy
     params:
       task: *task
-      num_classes: 32
+      num_classes: 18
       top_k: 2
   f1score:
     name: F1Score
     params:
       task: *task
-      num_classes: 32
+      num_classes: 18
       average: macro
 device: cuda
-out_dir: models/normal_clip_fine_tuning_mistral
+out_dir: models/genre/normal_clip_fine_tuning_mistral
 warmup: 5
 num_epochs: 50
 bar: True

@@ -50,5 +50,5 @@ bar: True
 device: cuda
 out_dir: models/genre/normal_clip_no_training_wikipedia
 class_source: data/processed/genres.csv
-key: &task genre
+key: &task style
 task: *task
