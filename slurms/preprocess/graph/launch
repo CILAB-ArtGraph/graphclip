@@ -10,7 +10,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=123000
 #SBATCH --job-name=split_graph
-#SBATCH --out=split_graph.out
-#SBATCH --err=split_graph.out
+#SBATCH --out=outs/split_graph.out
+#SBATCH --err=outs/split_graph.out
 
 srun ./slurms/preprocess/graph/exe
