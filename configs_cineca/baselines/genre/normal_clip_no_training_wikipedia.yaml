@@ -2,7 +2,7 @@ dataset:
   test:
     name: ImageTextDatset
     params:
-      dataset: data/processed/normal/artgraph_clip/test.csv
+      dataset: data/processed/normal/artgraph_clip_genre/test.csv
       img_dir: data/raw/images-resized
       preprocess: 
         name: Compose
@@ -32,23 +32,23 @@ metrics:
     name: Accuracy
     params:
       task: &task_metric multiclass
-      num_classes: 32
+      num_classes: 18
       top_k: 1
   top2:
     name: Accuracy
     params:
       task: *task_metric
-      num_classes: 32
+      num_classes: 18
       top_k: 2
   f1score:
     name: F1Score
     params:
       task: *task_metric
-      num_classes: 32
+      num_classes: 18
       average: macro
 bar: True
 device: cuda
-out_dir: models/normal_clip_no_training_wikipedia
-class_source: data/processed/styles.csv
-key: &task style
+out_dir: models/genre/normal_clip_no_training_wikipedia
+class_source: data/processed/genres.csv
+key: &task genre
 task: *task
