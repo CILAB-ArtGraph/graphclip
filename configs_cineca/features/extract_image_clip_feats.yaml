@@ -10,4 +10,4 @@ dataloader:
   drop_last: False
 loop:
   device: cuda
-  out_dir: /ext/raffaele/contrastive-artwork-classification/visual_embeddings
+  out_dir: /leonardo_scratch/fast/IscrC_DIANA/ext/raffaele/contrastive-artwork-classification/visual_embeddings

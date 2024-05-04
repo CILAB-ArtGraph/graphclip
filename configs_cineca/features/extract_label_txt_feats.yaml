@@ -11,7 +11,7 @@ dataloader:
   batch_size: 128
   drop_last: False
   shuffle: False
-out_dir: /home/raffaele/ext/contrastive-artwork-classification/data/label_embeddings
+out_dir: /leonardo_scratch/fast/IscrC_DIANA/ext/contrastive-artwork-classification/data/label_embeddings
 device: cuda
 source:
   style: data/processed/styles_mistral.csv
