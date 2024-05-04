@@ -4,7 +4,7 @@ data:
   label_feats_root: /leonardo_scratch/fast/IscrC_DIANA/ext/contrastive-artwork-classification/data/label_embeddings
 pruner:
   mapping: data/external/artgraph2bestemotions/mapping/artwork_entidx2name.csv
-  source: data/processed/normal/artgraph_clip/train.csv
+  source: data/processed/normal/artgraph_clip_multitask/train.csv
   mapping_kwargs: 
     names: [idx, name]
   sample: .1
