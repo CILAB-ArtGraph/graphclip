@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source .venv/bin/activate
+export TMPDIR=/leonardo_work/IscrC_DIANA/tmp/
+python main.py extract_features $@
