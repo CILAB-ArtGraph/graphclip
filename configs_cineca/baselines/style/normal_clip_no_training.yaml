@@ -2,7 +2,7 @@ dataset:
   test:
     name: ImageTextDatset
     params:
-      dataset: data/processed/normal/artgraph_clip/test.csv
+      dataset: data/processed/normal/artgraph_clip_style/test.csv
       img_dir: data/raw/images-resized
       preprocess: 
         name: Compose
@@ -48,5 +48,5 @@ metrics:
       average: macro
 bar: True
 device: cuda
-out_dir: models/normal_clip_no_training
+out_dir: models/style/normal_clip_no_training
 task: style

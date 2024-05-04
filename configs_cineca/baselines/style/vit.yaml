@@ -9,7 +9,7 @@ dataset:
   train:
     name: &vit_class ImageDataset
     params:
-      dataset: data/processed/normal/artgraph_clip/train.csv
+      dataset: data/processed/normal/artgraph_clip_style/train.csv
       img_dir: &images data/raw/images-resized
       preprocess:
         name: &clip clip
@@ -19,7 +19,7 @@ dataset:
   val:
     name: *vit_class
     params:
-      dataset: data/processed/normal/artgraph_clip/val.csv
+      dataset: data/processed/normal/artgraph_clip_style/val.csv
       img_dir: *images
       preprocess:
         name: *clip
@@ -29,7 +29,7 @@ dataset:
   test:
     name: *vit_class
     params:
-      dataset: data/processed/normal/artgraph_clip/test.csv
+      dataset: data/processed/normal/artgraph_clip_style/test.csv
       img_dir: *images
       preprocess: 
         name: *clip
@@ -76,7 +76,7 @@ metrics:
       num_classes: *num_styles
       average: macro
 device: cuda
-out_dir: models/ablations/vit
+out_dir: models/ablations/style/vit
 num_epochs: 50
 bar: True
     
