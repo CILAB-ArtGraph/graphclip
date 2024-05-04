@@ -13,4 +13,4 @@
 #SBATCH --out=outs/extract.out
 #SBATCH --err=outs/extract.out
 
-srun ./slurms/preprocess/features/exe $@
+srun ./slurms/features/exe $@
