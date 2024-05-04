@@ -13,4 +13,4 @@
 #SBATCH --out=split.out
 #SBATCH --err=split.out
 
-srun ./slurms/preprocess/graph/split_graph/exe $@
+srun ./slurms/preprocess/split/exe $@
