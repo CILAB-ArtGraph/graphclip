@@ -2,8 +2,8 @@
 
 source .venv/bin/activate
 export TMPDIR=/leonardo_work/IscrC_DIANA/tmp/
-python main.py split --prameters configs_cineca/preprocess/graph/split_graph_0_1.yaml --graph
-python main.py split --prameters configs_cineca/preprocess/graph/split_graph_0_3.yaml --graph
-python main.py split --prameters configs_cineca/preprocess/graph/split_graph_0_5.yaml --graph
-python main.py split --prameters configs_cineca/preprocess/graph/split_graph_0_7.yaml --graph
-python main.py split --prameters configs_cineca/preprocess/graph/split_graph_1_0.yaml --graph
+python main.py split --parameters configs_cineca/preprocess/graph/split_graph_0_1.yaml --graph
+python main.py split --parameters configs_cineca/preprocess/graph/split_graph_0_3.yaml --graph
+python main.py split --parameters configs_cineca/preprocess/graph/split_graph_0_5.yaml --graph
+python main.py split --parameters configs_cineca/preprocess/graph/split_graph_0_7.yaml --graph
+python main.py split --parameters configs_cineca/preprocess/graph/split_graph_1_0.yaml --graph
