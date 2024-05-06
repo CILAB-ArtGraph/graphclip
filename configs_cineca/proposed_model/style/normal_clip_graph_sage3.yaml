@@ -24,7 +24,7 @@ dataset:
   train:
     name: ImageGraphDataset
     params:
-      dataset: data/processed/normal/artgraph_clip/train.csv
+      dataset: data/processed/normal/artgraph_clip_style/train.csv
       img_dir: data/raw/images-resized
       mapping_kwargs:
         names:
@@ -40,7 +40,7 @@ dataset:
   val:
     name: ImageGraphDataset
     params:
-      dataset: data/processed/normal/artgraph_clip/val.csv
+      dataset: data/processed/normal/artgraph_clip_style/val.csv
       img_dir: data/raw/images-resized
       mapping_kwargs:
         names:
@@ -56,7 +56,7 @@ dataset:
   test:
     name: ImageTextDatset
     params:
-      dataset: data/processed/normal/artgraph_clip/test.csv
+      dataset: data/processed/normal/artgraph_clip_style/test.csv
       img_dir: data/raw/images-resized
       preprocess:
         name: clip
@@ -105,7 +105,7 @@ metrics:
       num_classes: 32
       average: macro
 device: cuda
-out_dir: models/0_5/normal_clip_graph_gcn3
+out_dir: models/proposed/style/normal_clip_graph_gcn3
 clean_out_dir: true
 warmup: 10
 num_epochs: 50
