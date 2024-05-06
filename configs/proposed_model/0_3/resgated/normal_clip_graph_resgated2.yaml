@@ -1,0 +1,116 @@
+model:
+  visual:
+    model_name: ViT-B-32
+    pretrained: laion2b_s34b_b79k
+    output_dict: true
+  gnn:
+    name: ResGatedGNN
+    params:
+      in_channels: 512
+      hidden_channels: 512
+      num_layers: 2
+      dropout: 0.25
+      act: LeakyReLU
+      act_kwargs:
+        negative_slope: 0.2
+      layer_act: Sigmoid
+      norm: LayerNorm
+      norm_kwargs:
+        mode: node
+        affine: false
+  params:
+    target_node_t: style
+    use_logit_scale: true
+dataset:
+  train:
+    name: ImageGraphDataset
+    params:
+      dataset: data/processed/normal/artgraph_clip/train.csv
+      img_dir: data/raw/images-resized
+      mapping_kwargs:
+        names:
+        - idx
+        - style
+      preprocess:
+        name: clip
+        params:
+          model_name: ViT-B-32
+          pretrained: laion2b_s34b_b79k
+      graph_class_mapping: data/external/artgraph2bestemotions/mapping/style_entidx2name.csv
+      mapping_target_col: style
+  val:
+    name: ImageGraphDataset
+    params:
+      dataset: data/processed/normal/artgraph_clip/val.csv
+      img_dir: data/raw/images-resized
+      mapping_kwargs:
+        names:
+        - idx
+        - style
+      preprocess:
+        name: clip
+        params:
+          model_name: ViT-B-32
+          pretrained: laion2b_s34b_b79k
+      graph_class_mapping: data/external/artgraph2bestemotions/mapping/style_entidx2name.csv
+      mapping_target_col: style
+  test:
+    name: ImageTextDatset
+    params:
+      dataset: data/processed/normal/artgraph_clip/test.csv
+      img_dir: data/raw/images-resized
+      preprocess:
+        name: clip
+        params:
+          model_name: ViT-B-32
+          pretrained: laion2b_s34b_b79k
+dataloader:
+  batch_size: 256
+  shuffle: true
+  drop_last: false
+  num_workers: 8
+criterion:
+  name: CLIPImageGraphLoss
+  params:
+    return_logits: true
+optimizer:
+  name: Adam
+  params:
+    lr: 1e-05
+scheduler:
+  name: HuggingFaceCosineScheduler
+  params:
+    num_warmup_steps: 1000
+early_stop:
+  name: EarlyStopping
+  params:
+    verbose: true
+    patience: 10
+metrics:
+  top1:
+    name: Accuracy
+    params:
+      task: multiclass
+      num_classes: 32
+      top_k: 1
+  top2:
+    name: Accuracy
+    params:
+      task: multiclass
+      num_classes: 32
+      top_k: 2
+  f1score:
+    name: F1Score
+    params:
+      task: multiclass
+      num_classes: 32
+      average: macro
+device: cuda
+out_dir: models/0_3/normal_clip_graph_resgated2
+clean_out_dir: true
+warmup: 10
+num_epochs: 50
+bar: true
+class_source:
+  f: data/processed/graph/0_3/train_graph.pt
+  map_location: cuda
