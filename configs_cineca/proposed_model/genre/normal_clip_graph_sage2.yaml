@@ -57,7 +57,7 @@ dataset:
   test:
     name: ImageTextDatset
     params:
-      dataset: data/processed/normal/artgraph_clip/test.csv
+      dataset: data/processed/normal/artgraph_clip_genre/test.csv
       img_dir: data/raw/images-resized
       preprocess:
         name: clip
