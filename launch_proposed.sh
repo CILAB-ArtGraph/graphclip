@@ -1,10 +1,10 @@
 #!/bin/bash
 
-rm -rf models/*
+rm -rf models/proposed/*
 rm -rf outs/*/*.out
 
-./launch_0_1.sh
-./launch_0_3.sh
-./launch_0_5.sh
-./launch_0_7.sh
-./launch_1_0.sh
+./scripts/launch_0_1.sh
+./scripts/launch_0_3.sh
+./scripts/launch_0_5.sh
+./scripts/launch_0_7.sh
+./scripts/launch_1_0.sh
