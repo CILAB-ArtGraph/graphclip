@@ -76,7 +76,7 @@ metrics:
       num_classes: *num_styles
       average: macro
 device: cuda
-out_dir: models/ablations/vit
+out_dir: models/ablations/genre/vit
 num_epochs: 50
 bar: True
     
