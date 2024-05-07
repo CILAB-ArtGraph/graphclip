@@ -64,8 +64,7 @@ class CLIPMultitaskRun(CLIPRun):
                 for k, v in metrics[task]:
                     metric_value = v.compute()
                     print(
-                        f"Epoch {epoch}/{self.num_epochs}: Task: {task}, 
-                        {phase} {k}: {metric_value.item():.4f}"
+                        f"Epoch {epoch}/{self.num_epochs}: Task: {task}, {phase} {k}: {metric_value.item():.4f}"
                     )
 
     def train_epoch(self, epoch):
@@ -87,7 +86,7 @@ class CLIPMultitaskRun(CLIPRun):
             out = {task: self.model(image=images, text=text_tokens[task]) for task in self.task}
 
             loss_out = {task: self.criterion[task](out[task], gts[task]) for task in self.task}
-            loss = torch.as_tensor([loss_out[task]["loss"] * self.l[task] for task in self.task]).to(self.device).sum()
+            loss = sum([loss_out[task]["loss"] * self.l[task] for task in self.task])
             loss.backward()
             self.optimizer.step()
             batch_loss = loss.cpu().item()
@@ -126,7 +125,7 @@ class CLIPMultitaskRun(CLIPRun):
             out = {task: self.model(image=images, text=text_tokens[task]) for task in self.task}
 
             loss_out = {task: self.criterion[task](out[task], gts[task]) for task in self.task}
-            loss = torch.as_tensor([loss_out[task]["loss"] * self.l[task] for task in self.task]).to(self.device).sum()
+            loss = sum([loss_out[task]["loss"] * self.l[task] for task in self.task])
             batch_loss = loss.cpu().item()
 
             # update stats
