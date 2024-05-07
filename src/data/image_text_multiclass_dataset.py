@@ -3,12 +3,12 @@ from pandas import DataFrame
 from torchvision.transforms import Compose
 from src.data.utils import DataDict
 import nlpaug.augmenter.word as naw
-from .image_multitask_dataset import ImageMultiClassDataset
+from .image_multitask_dataset import ImageMultiTaskDataset
 from copy import deepcopy
 import torch
 
 
-class ImageTextMultiTaskDataset(ImageMultiClassDataset):
+class ImageTextMultiTaskDataset(ImageMultiTaskDataset):
     def __init__(
         self,
         dataset: str | DataFrame,
