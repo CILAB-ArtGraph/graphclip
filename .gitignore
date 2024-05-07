@@ -96,3 +96,5 @@ models/*
 
 # ignore out files
 outs/
+
+configs/
