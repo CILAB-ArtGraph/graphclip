@@ -69,7 +69,6 @@ class CLIPMultiTaskDataset(ImageTextMultiTaskDataset):
         return aug_txt
 
     def collate_fn(self, batched_input: list[dict[str, Any]]) -> dict[str, Any]:
-        print("im here")
         images = [x[DataDict.IMAGE] for x in batched_input]
         classes = [x[DataDict.TEXT] for x in batched_input]
 
@@ -91,7 +90,6 @@ class CLIPMultiTaskDataset(ImageTextMultiTaskDataset):
         unique_str_classes = {
             k: [self.idx2class[k][x] for x in unique_classes[k]] for k in self.tasks
         }
-        print(unique_str_classes)
 
         summaries = {
             task: self.sources[task]
