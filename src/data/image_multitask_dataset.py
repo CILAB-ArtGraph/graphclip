@@ -5,7 +5,7 @@ from src.data.utils import DataDict
 from .image_text_dataset import ImageTextDatset
 
 
-class ImageMultiClassDataset(ImageTextDatset):
+class ImageMultiTaskDataset(ImageTextDatset):
     def __init__(
         self,
         dataset: str | DataFrame,
