@@ -45,7 +45,10 @@ class CLIPMultiTaskDataset(ImageTextMultiTaskDataset):
     ):
         super().__init__(dataset, img_dir, tasks, preprocess, **kwargs)
         self.source_col = source_col
-        self.sources = {k: self._init_dataset(v) for k, v in sources.items()}
+        self.sources = {
+            k: self._init_dataset(v).set_index(keys=[self.source_col])
+            for k, v in sources.items()
+        }
         self.preprocess_cls = self._init_cls_preprocess(preprocess_classes)
 
     def _init_cls_preprocess(self, cls_preprocess: Optional[dict] = None) -> list:
@@ -79,17 +82,20 @@ class CLIPMultiTaskDataset(ImageTextMultiTaskDataset):
             task: [self.class2idx[task][x[task]] for x in classes]
             for task in classes[0].keys()
         }
-        print(classes_idxs)
+
         unique_classes = {k: list(set(v)) for k, v in classes_idxs.items()}
         class2batch = {
             task: {v: k for k, v in enumerate(x)} for task, x in unique_classes.items()
         }
-        
-        print(class2batch)
+
+        unique_str_classes = {
+            k: [self.idx2class[k][x] for x in unique_classes[k]] for k in self.tasks
+        }
+        print(unique_str_classes)
 
         summaries = {
             task: self.sources[task]
-            .loc[unique_classes[task], DataDict.SUMMARY]
+            .loc[unique_str_classes[task], DataDict.SUMMARY]
             .tolist()
             for task in self.tasks
         }
