@@ -28,7 +28,9 @@ class CLIPMultitaskRun(CLIPRun):
         self.num_epochs = self.parameters.get(ParameterKeys.NUM_EPOCHS, 0)
         self.bar = self.parameters.get(ParameterKeys.BAR, False)
         self.task = self.parameters.get(ParameterKeys.TASK)  # now it is a list
-        self.l = self.parameters.get(ParameterKeys.LAMBDA, {}) # dict task-> lambda_task
+        self.l = self.parameters.get(
+            ParameterKeys.LAMBDA, {}
+        )  # dict task-> lambda_task
         self.trigger = False
 
     def _init_metrics(self):
@@ -79,13 +81,21 @@ class CLIPMultitaskRun(CLIPRun):
             images = data_dict[DataDict.IMAGE].to(self.device)
             texts = data_dict[DataDict.TEXT]
             # tokens extracted for each task
-            text_tokens = {task: self.tokenizer(texts=texts[task]).to(self.device) for task in self.task}
+            text_tokens = {
+                task: self.tokenizer(texts=texts[task]).to(self.device)
+                for task in self.task
+            }
             gts = {k: v.to(self.device) for k, v in data_dict[DataDict.GTS].items()}
 
             self.optimizer.zero_grad()
-            out = {task: self.model(image=images, text=text_tokens[task]) for task in self.task}
+            out = {
+                task: self.model(image=images, text=text_tokens[task])
+                for task in self.task
+            }
 
-            loss_out = {task: self.criterion[task](out[task], gts[task]) for task in self.task}
+            loss_out = {
+                task: self.criterion[task](out[task], gts[task]) for task in self.task
+            }
             loss = sum([loss_out[task]["loss"] * self.l[task] for task in self.task])
             loss.backward()
             self.optimizer.step()
@@ -119,12 +129,20 @@ class CLIPMultitaskRun(CLIPRun):
             images = data_dict[DataDict.IMAGE].to(self.device)
             texts = data_dict[DataDict.TEXT]
             # tokens extracted for each task
-            text_tokens = {task: self.tokenizer(texts=texts[task]).to(self.device) for task in self.task}
+            text_tokens = {
+                task: self.tokenizer(texts=texts[task]).to(self.device)
+                for task in self.task
+            }
             gts = {k: v.to(self.device) for k, v in data_dict[DataDict.GTS].items()}
 
-            out = {task: self.model(image=images, text=text_tokens[task]) for task in self.task}
+            out = {
+                task: self.model(image=images, text=text_tokens[task])
+                for task in self.task
+            }
 
-            loss_out = {task: self.criterion[task](out[task], gts[task]) for task in self.task}
+            loss_out = {
+                task: self.criterion[task](out[task], gts[task]) for task in self.task
+            }
             loss = sum([loss_out[task]["loss"] * self.l[task] for task in self.task])
             batch_loss = loss.cpu().item()
 
@@ -145,3 +163,71 @@ class CLIPMultitaskRun(CLIPRun):
             cumulated_loss=cumulated_loss,
             phase=ParameterKeys.VALIDATION,
         )
+
+    def get_class_maps(self):
+        source_key = self.parameters.get(ParameterKeys.KEY)
+        classes = {
+            task: list(self.train_loader.dataset.sources[task].index.tolist())
+            for task in self.task
+        }
+        idx2class = {
+            task: {ix: s for ix, s in enumerate(classes[task])}
+            for task in classes.keys()
+        }
+        class2idx = {
+            task: {v: k for k, v in task_maps.items()}
+            for task, task_maps in idx2class.items()
+        }
+        class_prompts = {
+            task: self.train_loader.dataset.sources[task].loc[cls_list, source_key]
+            for task, cls_list in classes.items()
+        }
+
+        return class_prompts, idx2class, class2idx
+
+    @torch.no_grad()
+    def test(self) -> dict[dict[str, float]]:
+        if not self.test_loader:
+            return {}
+        self.load_state_dict()
+        self.model = self.model.to(self.device)
+        class_prompts, idx2class, class2idx = self.get_class_maps()
+
+        for task in self.task:
+            print(f"Having {len(class_prompts[task])} classes for task {task}")
+
+        class_tokens = {
+            task: self.tokenizer(prompts).to(self.device)
+            for task, prompts in class_prompts.items()
+        }
+
+        class_feats = {
+            task: self.model.encode_text(tokens, normalize=True)
+            for task, tokens in class_tokens.items()
+        }
+
+        bar = self.get_bar(self.test_loader, desc="Test")
+        metrics = deepcopy(self.metrics)
+        print(metrics)
+        input()
+
+        for ix, data_dict in bar:
+            imgs = data_dict[DataDict.IMAGE].to(self.device)
+            txts = data_dict[DataDict.TEXT]
+            labels = {
+                task: torch.as_tensor(
+                    list(map(lambda x: class2idx[task][x], cls_txt))
+                ).float()
+                for task, cls_txt in txts.items()
+            }
+            img_feats = self.model.encode_image(imgs, normalize=True)
+
+            for task in self.task:
+                out = img_feats @ class_feats[task].T
+                out = out.detach().cpu()
+                for m in metrics[task]:
+                    metrics[task][m].update(out, labels[task])
+        return {
+            task: {k: v.compute().cpu().item() for k, v in metric.items()}
+            for task, metric in metrics.items()
+        }
