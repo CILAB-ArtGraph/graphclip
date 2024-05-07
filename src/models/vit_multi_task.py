@@ -24,7 +24,7 @@ class ViTMultiTask(torch.nn.Module):
         self.init()
 
     def init(self):
-        self.modules = torch.nn.ModuleDict(
+        self.linears = torch.nn.ModuleDict(
             {
                 task: torch.nn.Sequential(
                     torch.nn.Dropout(p=self.dropout),
@@ -40,7 +40,7 @@ class ViTMultiTask(torch.nn.Module):
     def forward(self, x):
         features = self.backbone(x)
         return (
-            {task: self.modules[task](features) for task in self.tasks}
+            {task: self.linears[task](features) for task in self.tasks}
             if self.output_dict
-            else [self.modules[task](features) for task in self.tasks]
+            else [self.linears[task](features) for task in self.tasks]
         )
