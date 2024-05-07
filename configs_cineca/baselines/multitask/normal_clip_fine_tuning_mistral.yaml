@@ -6,12 +6,14 @@ tokenizer:
   model_name: *vit
 dataset:
   train:
-    name: &clip_class CLIPDataset
+    name: &clip_class CLIPMultiTaskDataset
     params:
-      dataset: data/processed/normal/artgraph_clip/train.csv
+      dataset: data/processed/normal/artgraph_clip_multitask/train.csv
       img_dir: &images data/raw/images-resized
-      target: &styles data/processed/styles_naive.csv
-      target_col: style
+      tasks: &tasks [style, genre]
+      sources:
+        style: &style_source data/processed/styles_mistral.csv
+        genre: &genre_source data/processed/genres_mistral.csv
       preprocess:
         name: &clip clip
         params: 
@@ -27,21 +29,24 @@ dataset:
   val:
     name: *clip_class
     params:
-      dataset: data/processed/normal/artgraph_clip/val.csv
+      dataset: data/processed/normal/artgraph_clip_multitask/val.csv
       img_dir: *images
-      target: *styles
-      target_col: style
+      tasks: *tasks
+      sources:
+        style: *style_source
+        genre: *genre_source
       preprocess:
         name: *clip
         params: 
           model_name: *vit
           pretrained: *pretrain
   test:
-    name: ImageTextDatset
+    name: ImageTextMultiTaskDataset
     params:
-      dataset: data/processed/normal/artgraph_clip/test.csv
+      dataset: data/processed/normal/artgraph_clip_multitask/test.csv
       img_dir: *images
-      preprocess: 
+      tasks: *tasks
+      preprocess:
         name: *clip
         params:
           model_name: *vit
@@ -52,9 +57,14 @@ dataloader:
   drop_last: False
   num_workers: 8
 criterion:
-  name: CLIPImageTextLoss
-  params:
-    return_logits: True
+  style:
+    name: CLIPImageTextLoss
+    params:
+      return_logits: True
+  genre:
+    name: CLIPImageTextLoss
+    params:
+      return_logits: True
 optimizer:
   name: Adam
   params:
@@ -69,29 +79,51 @@ early_stop:
     verbose: True
     patience: 10
 metrics:
-  top1:
-    name: Accuracy
-    params:
-      task: &task multiclass
-      num_classes: 32
-      top_k: 1
-  top2:
-    name: Accuracy
-    params:
-      task: *task
-      num_classes: 32
-      top_k: 2
-  f1score:
-    name: F1Score
-    params:
-      task: *task
-      num_classes: 32
-      average: macro
+  style:
+    top1:
+      name: Accuracy
+      params:
+        task: &task multiclass
+        num_classes: 32
+        top_k: 1
+    top2:
+      name: Accuracy
+      params:
+        task: *task
+        num_classes: 32
+        top_k: 2
+    f1score:
+      name: F1Score
+      params:
+        task: *task
+        num_classes: 32
+        average: macro
+  genre: 
+    top1:
+      name: Accuracy
+      params:
+        task: *task
+        num_classes: 18
+        top_k: 1
+    top2:
+      name: Accuracy
+      params:
+        task: *task
+        num_classes: 18
+        top_k: 2
+    f1score:
+      name: F1Score
+      params:
+        task: *task
+        num_classes: 18
+        average: macro
 device: cuda
-out_dir: models/normal_clip_fine_tuning_mistral
+out_dir: models/multitask/normal_clip_fine_tunining_mistral
 warmup: 5
 num_epochs: 50
 bar: True
-class_source: *styles
-class_key: summary
-    
+key: summary
+task: *tasks
+lambda:
+  style: 0.5
+  genre: 0.5
