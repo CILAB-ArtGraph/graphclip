@@ -2,6 +2,7 @@ from .clip_run import CLIPRun
 from .clip_graph_run import CLIPGraphRun
 from .vit_run import ViTRun
 from .run import Run
+from .clip_multitask_run import CLIPMultitaskRun
 import json
 from .utils import ParameterKeys
 import os
@@ -27,7 +28,12 @@ def launch_experiment(parameters, run_cls: Run):
         json.dump(test_metrics, f)
 
 
-def run_experiment(parameters, graph: bool = False, ablation: bool = False):
+def launch_multitask(parameters, graph: bool = False, ablation: bool = False):
+    run_cls = CLIPMultitaskRun
+    launch_experiment(parameters=parameters, run_cls=run_cls)
+
+
+def launch_single_task(parameters, graph: bool = False, ablation: bool = False):
     if ablation:
         run_cls = ViTRun
     elif graph:
@@ -35,3 +41,12 @@ def run_experiment(parameters, graph: bool = False, ablation: bool = False):
     else:
         run_cls = CLIPRun
     launch_experiment(parameters=parameters, run_cls=run_cls)
+
+
+def run_experiment(
+    parameters, graph: bool = False, ablation: bool = False, multitask: bool = False
+):
+    if multitask:
+        launch_multitask(parameters=parameters, graph=graph, ablation=ablation)
+    else:
+        launch_single_task(parameters=parameters, graph=graph, ablation=ablation)

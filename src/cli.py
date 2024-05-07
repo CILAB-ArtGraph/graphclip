@@ -45,7 +45,8 @@ def test(parameters):
 @click.option("--parameters", help="Path to parameters file")
 @click.option("--graph", is_flag=True, default=False)
 @click.option("--ablation", is_flag=True, default=False)
-def experiment(parameters, graph, ablation):
+@click.option("--multitask", is_flag=True, default=False)
+def experiment(parameters, graph, ablation, multitask):
     from src.experiment import run_experiment
 
-    run_experiment(load_ruamel(parameters), graph, ablation)
+    run_experiment(load_ruamel(parameters), graph, ablation, multitask)
