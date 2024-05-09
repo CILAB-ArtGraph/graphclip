@@ -13,7 +13,7 @@ from src.data import DataDict
 class CLIPMultitaskRun(CLIPMultitaskRun):
     def __init__(self, parameters: dict):
         super().__init__(parameters)
-    
+
     def _init_general(self):
         super()._init_general()
         self.graph = self._init_graph()
@@ -119,7 +119,7 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
         for ix, data_dict in bar:
             images = data_dict[DataDict.IMAGE].to(self.device)
             nodes = data_dict[DataDict.NODES]
-            gts = data_dict[DataDict.GTS].to(self.device)
+            gts = {k: v.to(self.device) for k, v in data_dict[DataDict.GTS].items()}
 
             out = self.model(
                 image=images,
@@ -128,8 +128,10 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
                 target_nodes=nodes,
                 return_dict=True,
             )
-            loss_out = self.criterion(out, gts)
-            loss = loss_out["loss"]
+            loss_out = {
+                task: self.criterion[task](out, gts[task]) for task in self.task
+            }
+            loss = sum([loss_out[task]["loss"] * self.l[task] for task in self.task])
             batch_loss = loss.cpu().item()
 
             # update stats
@@ -151,7 +153,10 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
         )
 
     def get_class_maps(self):
-        return self.train_loader.dataset.class2idx, self.train_loader.dataset.idx2class
+        return (
+            self.train_loader.dataset.class2graphidx,
+            self.train_loader.dataset.idxgraph2class,
+        )
 
     @torch.no_grad()
     def test(self) -> dict[str, float]:
@@ -159,10 +164,10 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
             return {}
         self.load_state_dict()
         self.model = self.model.to(self.device)
-        classes = self.get_classes_for_test()
         class2idx, idx2class = self.get_class_maps()
 
-        print(f"Having {len(classes)} classes")
+        for task in self.task:
+            print(f"Having {len(list(class2idx[task].keys()))} classes for task {task}")
 
         class_feats = self.model.encode_graph(
             self.graph.x_dict, self.graph.edge_index_dict, normalize=True
@@ -178,8 +183,12 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
             labels = torch.as_tensor(list(map(lambda x: class2idx[x], txts))).float()
             img_feats = self.model.encode_image(imgs, normalize=True)
 
-            out = img_feats @ class_feats.T
-            out = out.detach().cpu()
-            for m in metrics:
-                metrics[m].update(out, labels)
-        return {k: v.compute().cpu().item() for k, v in metrics.items()}
+            for task in self.task:
+                out = img_feats @ class_feats[task].T
+                out = out.detach().cpu()
+                for m in metrics:
+                    metrics[task][m].update(out, labels)
+        return {
+            task: {k: v.compute().cpu().item() for k, v in metric.items()}
+            for task, metric in metrics.items()
+        }
