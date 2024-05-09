@@ -10,7 +10,7 @@ dataset:
     params:
       dataset: data/processed/normal/artgraph_clip_style/train.csv
       img_dir: &images data/raw/images-resized
-      target: &styles data/processed/styles_naive.csv
+      target: &styles data/processed/styles_mistral.csv
       target_col: style
       preprocess:
         name: &clip clip

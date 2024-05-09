@@ -13,7 +13,7 @@ from copy import deepcopy
 @st.cache_resource
 def _init_run():
     return CLIPRun(
-        load_ruamel("./configs/baselines/normal_clip_fine_tuning_mistral.yaml")
+        load_ruamel("./configs_cineca/baselines/style/normal_clip_fine_tuning_mistral.yaml")
     )
 
 
