@@ -84,8 +84,10 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
                 target_nodes=nodes,
                 return_dict=True,
             )
-            loss_out = self.criterion(out, gts)
-            loss = loss_out["loss"]
+            loss_out = {
+                task: self.criterion[task](out, gts[task]) for task in self.task
+            }
+            loss = sum([loss_out[task]["loss"] * self.l[task] for task in self.task])
             loss.backward()
             self.optimizer.step()
             batch_loss = loss.cpu().item()
