@@ -74,7 +74,7 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
         for ix, data_dict in bar:
             images = data_dict[DataDict.IMAGE].to(self.device)
             nodes = data_dict[DataDict.NODES]
-            gts = data_dict[DataDict.GTS].to(self.device)
+            gts = {k: v.to(self.device) for k, v in data_dict[DataDict.GTS].items()}
 
             self.optimizer.zero_grad()
             out = self.model(
