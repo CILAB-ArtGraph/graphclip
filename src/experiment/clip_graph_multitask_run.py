@@ -1,4 +1,13 @@
 from .clip_multitask_run import CLIPMultitaskRun
+from copy import deepcopy
+from src.models import CLIPGraphMultiTask
+from .utils import ParameterKeys
+from open_clip import create_model
+from torch_geometric.nn.models.basic_gnn import BasicGNN
+import src.models.graph as graph_module
+from torch_geometric.data import HeteroData
+import torch
+from src.data import DataDict
 
 
 class CLIPMultitaskRun(CLIPMultitaskRun):
@@ -9,11 +18,11 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
         super()._init_general()
         self.graph = self._init_graph()
 
-    def _init_model(self) -> CLIPGraph:
+    def _init_model(self) -> CLIPGraphMultiTask:
         model_params = deepcopy(self.parameters).get(ParameterKeys.MODEL)
         clip_model = create_model(**model_params.get(ParameterKeys.VISUAL))
         gnn_model = self.__init_gnn()
-        return CLIPGraph(
+        return CLIPGraphMultiTask(
             clip_model=clip_model,
             gnn_model=gnn_model,
             metadata=self.graph.metadata(),
