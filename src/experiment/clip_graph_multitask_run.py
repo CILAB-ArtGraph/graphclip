@@ -10,7 +10,7 @@ import torch
 from src.data import DataDict
 
 
-class CLIPMultitaskRun(CLIPMultitaskRun):
+class CLIPGraphMultitaskRun(CLIPMultitaskRun):
     def __init__(self, parameters: dict):
         super().__init__(parameters)
 
@@ -155,7 +155,7 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
     def get_class_maps(self):
         return (
             self.train_loader.dataset.class2graphidx,
-            self.train_loader.dataset.idxgraph2class,
+            self.train_loader.dataset.graphidx2class,
         )
 
     @torch.no_grad()
@@ -177,17 +177,23 @@ class CLIPMultitaskRun(CLIPMultitaskRun):
 
         metrics = deepcopy(self.metrics)
 
+
         for ix, data_dict in bar:
             imgs = data_dict[DataDict.IMAGE].to(self.device)
             txts = data_dict[DataDict.TEXT]
-            labels = torch.as_tensor(list(map(lambda x: class2idx[x], txts))).float()
+            labels = {
+                task: torch.as_tensor(
+                    list(map(lambda x: class2idx[task][x], cls_txt))
+                ).float()
+                for task, cls_txt in txts.items()
+            }
             img_feats = self.model.encode_image(imgs, normalize=True)
 
             for task in self.task:
                 out = img_feats @ class_feats[task].T
                 out = out.detach().cpu()
-                for m in metrics:
-                    metrics[task][m].update(out, labels)
+                for m in metrics[task]:
+                    metrics[task][m].update(out, labels[task])
         return {
             task: {k: v.compute().cpu().item() for k, v in metric.items()}
             for task, metric in metrics.items()

@@ -4,6 +4,7 @@ from .vit_run import ViTRun
 from .vit_multitask_run import ViTMultiTaskRun
 from .run import Run
 from .clip_multitask_run import CLIPMultitaskRun
+from .clip_graph_multitask_run import CLIPGraphMultitaskRun
 import json
 from .utils import ParameterKeys
 import os
@@ -32,6 +33,8 @@ def launch_experiment(parameters, run_cls: Run):
 def launch_multitask(parameters, graph: bool = False, ablation: bool = False):
     if ablation:
         run_cls = ViTMultiTaskRun
+    elif graph:
+        run_cls = CLIPGraphMultitaskRun
     else:
         run_cls = CLIPMultitaskRun
     launch_experiment(parameters=parameters, run_cls=run_cls)
