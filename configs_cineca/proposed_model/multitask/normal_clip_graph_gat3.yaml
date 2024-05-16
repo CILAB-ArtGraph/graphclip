@@ -145,7 +145,7 @@ metrics:
         num_classes: 18
         average: macro
 device: cuda
-out_dir: models/proposed/multitask/normal_clip_graph_gat2
+out_dir: models/proposed/multitask/normal_clip_graph_gat3
 clean_out_dir: true
 warmup: 10
 num_epochs: 50
