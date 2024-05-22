@@ -98,3 +98,5 @@ models/*
 outs/
 
 configs/
+
+models_cineca
