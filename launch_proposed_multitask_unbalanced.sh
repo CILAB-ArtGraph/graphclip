@@ -1,0 +1,6 @@
+#!/bin/bash
+mkdir ./outs/multitask
+sbatch -o ./outs/multitask/normal_clip_graph_sage3_unbalanced.out -e ./outs/multitask/normal_clip_graph_sage3_unbalanced.out --job-name multitask_sage ./slurms/proposed_model/launch --parameters="./configs_cineca/proposed_model/multitask/unbalanced/normal_clip_graph_sage3.yaml" --graph --multitask
+sbatch -o ./outs/multitask/normal_clip_graph_sage2_unbalanced.out -e ./outs/multitask/normal_clip_graph_sage2_unbalanced.out --job-name multitask_sage ./slurms/proposed_model/launch --parameters="./configs_cineca/proposed_model/multitask/unbalanced/normal_clip_graph_sage2.yaml" --graph --multitask
+sbatch -o ./outs/multitask/normal_clip_graph_gat2_unbalanced.out -e ./outs/multitask/normal_clip_graph_gat2_unbalanced.out --job-name multitask_gat ./slurms/proposed_model/launch --parameters="./configs_cineca/proposed_model/multitask/unbalanced/normal_clip_graph_gat2.yaml" --graph --multitask
+sbatch -o ./outs/multitask/normal_clip_graph_gat3_unbalanced.out -e ./outs/multitask/normal_clip_graph_gat3_unbalanced.out --job-name multitask_gat ./slurms/proposed_model/launch --parameters="./configs_cineca/proposed_model/multitask/unbalanced/normal_clip_graph_gat3.yaml" --graph --multitask
