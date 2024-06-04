@@ -310,9 +310,10 @@ class CLIPRun(Run):
         return dataset.dataset[dataset.dataset.columns[-1]].unique().tolist()
 
     def load_state_dict(self):
-        if os.path.exists(f"{ParameterKeys.OUT_DIR}/{ParameterKeys.MODEL}.pt"):
+        if os.path.exists(f"{self.parameters[ParameterKeys.OUT_DIR]}/{ParameterKeys.MODEL}.pt"):
+            print("loading state dict")
             state_dict = torch.load(
-                f"{ParameterKeys.OUT_DIR}/{ParameterKeys.MODEL}.pt",
+                f"{self.parameters[ParameterKeys.OUT_DIR]}/{ParameterKeys.MODEL}.pt",
                 map_location=self.device,
             )
             self.model.load_state_dict(state_dict=state_dict)
