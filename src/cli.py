@@ -35,10 +35,11 @@ def extract_features(parameters, t):
 
 @main.command("test")
 @click.option("--parameters", help="Path to parameters file")
-def test(parameters):
-    from src.experiment import test_clip
+@click.option("--graph", is_flag=True, default=False)
+def test(parameters, graph):
+    from src.experiment import test as test_fn
 
-    test_clip(load_ruamel(parameters))
+    test_fn(load_ruamel(parameters), graph)
 
 
 @main.command("experiment")

@@ -20,6 +20,24 @@ def test_clip(parameters):
     with open(f"{out_dir}/test_metrics.json", "w+") as f:
         json.dump(test_metrics, f)
 
+def test_graph(parameters):
+    test_metrics = CLIPGraphRun(parameters=parameters).test()
+    print(test_metrics)
+    out_dir = parameters.get(ParameterKeys.OUT_DIR)
+    os.makedirs(out_dir, exist_ok=True)
+
+    with open(f"{out_dir}/test_metrics.json", "w+") as f:
+        json.dump(test_metrics, f)
+
+
+def test(parameters, graph):
+    if graph:
+        test_graph(parameters=parameters)
+    else:
+        test_clip(parameters=parameters)
+
+
+
 
 def launch_experiment(parameters, run_cls: Run):
     run = run_cls(parameters)
