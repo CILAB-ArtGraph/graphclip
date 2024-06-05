@@ -39,3 +39,4 @@ class ParameterKeys(StrEnum):
     TASK = "task"
     DEF_TASK = "style"
     LAMBDA = "lambda"
+    CHECKPOINT = "checkpoint"
