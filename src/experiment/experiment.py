@@ -10,32 +10,42 @@ from .utils import ParameterKeys
 import os
 
 
-def test_clip(parameters):
-    test_metrics = CLIPRun(parameters).test()
-
+def launch_test(parameters, run_cls: Run):
+    run = run_cls(parameters)
+    test_metrics = run.test()
     print(test_metrics)
     out_dir = parameters.get(ParameterKeys.OUT_DIR)
-    os.makedirs(out_dir, exist_ok=True)
-
     with open(f"{out_dir}/test_metrics.json", "w+") as f:
         json.dump(test_metrics, f)
 
 
-def test_graph(parameters):
-    test_metrics = CLIPGraphRun(parameters=parameters).test()
-    print(test_metrics)
-    out_dir = parameters.get(ParameterKeys.OUT_DIR)
-    os.makedirs(out_dir, exist_ok=True)
-
-    with open(f"{out_dir}/test_metrics.json", "w+") as f:
-        json.dump(test_metrics, f)
-
-
-def test(parameters, graph):
-    if graph:
-        test_graph(parameters=parameters)
+def test_single_task(parameters, ablation, graph):
+    if ablation:
+        run_cls = ViTRun
+    elif graph:
+        run_cls = CLIPGraphRun
     else:
-        test_clip(parameters=parameters)
+        run_cls = CLIPRun
+    launch_test(parameters=parameters, run_cls=run_cls)
+
+
+def test_multitask(parameters, ablation, graph):
+    if ablation:
+        run_cls = ViTMultiTaskRun
+    elif graph:
+        run_cls = CLIPGraphMultitaskRun
+    else:
+        run_cls = CLIPMultitaskRun
+    launch_test(parameters=parameters, run_cls=run_cls)
+
+
+def run_test(
+    parameters, graph: bool = False, ablation: bool = False, multitask: bool = False
+):
+    if multitask:
+        test_multitask(parameters=parameters, graph=graph, ablation=ablation)
+    else:
+        test_single_task(parameters=parameters, graph=graph, ablation=ablation)
 
 
 def launch_experiment(parameters, run_cls: Run):
