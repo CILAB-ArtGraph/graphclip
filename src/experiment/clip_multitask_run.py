@@ -208,8 +208,6 @@ class CLIPMultitaskRun(CLIPRun):
 
         bar = self.get_bar(self.test_loader, desc="Test")
         metrics = deepcopy(self.metrics)
-        print(metrics)
-        input()
 
         for ix, data_dict in bar:
             imgs = data_dict[DataDict.IMAGE].to(self.device)

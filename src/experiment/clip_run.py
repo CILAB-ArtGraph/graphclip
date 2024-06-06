@@ -202,9 +202,6 @@ class CLIPRun(Run):
 
             self.optimizer.zero_grad()
             out = self.model(image=images, text=text_tokens)
-            # print(out)
-            # print(gts.size())
-            # input()
             loss_out = self.criterion(out, gts)
             loss = loss_out["loss"]
             loss.backward()
@@ -312,13 +309,15 @@ class CLIPRun(Run):
 
     def load_state_dict(self):
         out_dir = self.checkpoint_dir if self.checkpoint_dir else self.parameters.get(ParameterKeys.OUT_DIR)
-        if os.path.exists(f"{out_dir}/{ParameterKeys.MODEL}.pt"):
+        if os.path.exists(f"{out_dir}/ParameterKeys.MODEL.pt"):
             print("loading state dict")
             state_dict = torch.load(
-                f"{out_dir}/{ParameterKeys.MODEL}.pt",
+                f"{out_dir}/ParameterKeys.MODEL.pt",
                 map_location=self.device,
             )
             self.model.load_state_dict(state_dict=state_dict)
+        else:
+            print("no state dict found")
 
     def get_class_info(self):
         classes = self.get_classes_for_test()
