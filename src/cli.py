@@ -36,10 +36,12 @@ def extract_features(parameters, t):
 @main.command("test")
 @click.option("--parameters", help="Path to parameters file")
 @click.option("--graph", is_flag=True, default=False)
-def test(parameters, graph):
-    from src.experiment import test as test_fn
+@click.option("--ablation", is_flag=True, default=False)
+@click.option("--multitask", is_flag=True, default=False)
+def test(parameters, graph, ablation, multitask):
+    from src.experiment import run_test as test_fn
 
-    test_fn(load_ruamel(parameters), graph)
+    test_fn(load_ruamel(parameters), graph, ablation, multitask)
 
 
 @main.command("experiment")
