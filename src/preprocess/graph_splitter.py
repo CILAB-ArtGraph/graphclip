@@ -243,3 +243,83 @@ class ArtGraphInductivePruner:
 
     def _load_data(self, data: Union[str, pd.DataFrame], **kwargs) -> pd.DataFrame:
         return data if isinstance(data, pd.DataFrame) else pd.read_csv(data, **kwargs)
+
+
+class ArtGraphInductiveClassPruner:
+    def __init__(
+        self,
+        data: torch_geometric.data.HeteroData,
+        num_classes: dict[str, int],
+        mapping_classes: dict[str, Union[str, pd.DataFrame]],
+        mapping_kwargs: dict = {},
+        random_state=None,
+        add_self_loops: bool = True,
+        to_undirected: bool = True,
+    ) -> None:
+        self.data = data
+        self.num_classes = num_classes
+        self.mapping_classes = {
+            k: self._load_data(v, **mapping_kwargs) for k, v in mapping_classes.items()
+        }
+        self.random_state = random_state
+        self.add_self_loops = add_self_loops
+        self.to_undirected = to_undirected
+
+    def _load_data(self, data: Union[str, pd.DataFrame], **kwargs) -> pd.DataFrame:
+        return data if isinstance(data, pd.DataFrame) else pd.read_csv(data, **kwargs)
+
+    def _get_pruned_classes(self) -> dict[str, dict[int, int]]:
+        # style -> idx, name
+        pruned_classes = {
+            k: train_test_split(
+                v, test_size=self.num_classes[k], random_state=self.random_state
+            )[1]
+            for k, v in self.mapping_classes.items()
+        }
+        new_mapping = {
+            k: {o: n for o, n in enumerate(v["idx"].unique().tolist())}
+            for k, v in pruned_classes.items()
+        }
+        return pruned_classes, new_mapping
+
+    def transform(self):
+        out_data = deepcopy(self.data)
+        classes, mapping = self._get_pruned_classes()
+
+        # reassign node features
+        for cls in classes:
+            out_data[cls].x = out_data[cls].x[list(mapping[cls].keys())]
+
+            for etype in self.data.metadata()[
+                1
+            ]:  # for each edge type transform the edge index
+                (h, _, t) = etype
+                if h == cls:
+                    target_col = 0
+                elif t == cls:
+                    target_col = 1
+                else:
+                    continue
+                edge_index = pd.DataFrame(out_data[etype].edge_index.T.numpy())
+                # filtering
+                edge_index = edge_index[
+                    edge_index[target_col].isin(list(mapping[cls].keys()))
+                ]
+                # mapping
+                edge_index[target_col] = edge_index[target_col].map(mapping[cls])
+                out_data[etype].edge_index = (
+                    torch.from_numpy(edge_index.values).long().T
+                )
+        # postprocess
+        if self.add_self_loops:
+            out_data = AddSelfLoops()(out_data)
+        if self.to_undirected:
+            out_data = ToUndirected()(out_data)
+
+        # postprocessing classes
+        for cls, df in classes.items():
+            rev_mapping = {v:k for k, v in mapping[cls].items()}
+            df["idx"] = df["idx"].map(rev_mapping)
+            df.reset_index(drop=True, inplace=True)
+            classes[cls] = df
+        return out_data, classes
