@@ -20,6 +20,7 @@ def test_clip(parameters):
     with open(f"{out_dir}/test_metrics.json", "w+") as f:
         json.dump(test_metrics, f)
 
+
 def test_graph(parameters):
     test_metrics = CLIPGraphRun(parameters=parameters).test()
     print(test_metrics)
@@ -35,8 +36,6 @@ def test(parameters, graph):
         test_graph(parameters=parameters)
     else:
         test_clip(parameters=parameters)
-
-
 
 
 def launch_experiment(parameters, run_cls: Run):
