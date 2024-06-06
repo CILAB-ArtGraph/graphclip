@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import torch
 import json
+from copy import deepcopy
 
 
 def download_artgraph(parameters):
@@ -68,6 +69,26 @@ def split_normal(
     test.to_csv(f"{outdir}/test.csv", **out_args)
 
 
+def split_normal_classes(
+    in_dir: str,
+    mapping_dir: str,
+    out_dir: str,
+):
+    os.makedirs(out_dir, exist_ok=True)
+    for file in filter(lambda x: x != "test.csv", os.listdir(in_dir)):
+        df = pd.read_csv(f"{in_dir}/{file}")
+        target_cols = list(filter(lambda x: x != "artwork", df.columns))
+        mappings = {
+            col: pd.read_csv(f"{mapping_dir}/{col}_mapping.csv")
+            for col in target_cols
+        }
+        out_df = deepcopy(df)
+        for col in target_cols:
+            df = df[df[col].isin(mappings[col]["name"].unique().tolist())]
+        df.reset_index(drop=True, inplace=True)
+        df.to_csv(f'{out_dir}/{file}', index=False)
+
+
 def split_graph(parameters: dict):
     data_params = parameters.get("data")
     data = ArtGraph(**data_params)[0]
@@ -91,12 +112,15 @@ def split_classes(parameters: dict):
     os.makedirs(out_dir, exist_ok=True)
     torch.save(out_data, f"{out_dir}/train_graph.pt")
     for k, v in mapping.items():
-        v.to_csv(f"{out_dir}/{k}_mapping.csv", index = False)
+        v.to_csv(f"{out_dir}/{k}_mapping.csv", index=False)
 
 
 def split(parameters: dict, graph: bool = False, classes: bool = False):
     if not graph:
-        split_normal(**parameters)
+        if classes:
+            split_normal_classes(**parameters)
+        else:
+            split_normal(**parameters)
     elif classes:
         split_classes(parameters=parameters)
     else:
