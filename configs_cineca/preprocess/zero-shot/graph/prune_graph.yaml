@@ -1,0 +1,16 @@
+data:
+  f: data/processed/graph/0_5/train_graph.pt
+  map_location: &device cpu
+pruner:
+  num_classes: 
+    style: 24
+    genre: 14
+  mapping_classes: 
+    style: data/external/artgraph2bestemotions/mapping/style_entidx2name.csv
+    genre: data/external/artgraph2bestemotions/mapping/genre_entidx2name.csv
+  mapping_kwargs: 
+    names: [idx, name]
+  random_state: 42
+  add_self_loops: True
+  to_undirected: True
+out_dir: data/processed/zero-shot/graph

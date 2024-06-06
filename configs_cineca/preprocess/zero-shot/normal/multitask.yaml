@@ -1,0 +1,3 @@
+in_dir: data/processed/normal/artgraph_clip_multitasl
+mapping_dir: data/processed/zero-shot/graph
+out_dir: data/processed/zero-shot/normal/artgraph_clip_multitask
