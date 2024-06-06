@@ -18,6 +18,13 @@ class CLIPGraphRun(CLIPRun):
     def _init_general(self):
         super()._init_general()
         self.graph = self._init_graph()
+        self.test_graph = self._init_test_graph()
+
+    def _init_test_graph(self):
+        graph_params = deepcopy(
+            self.parameters.get(ParameterKeys.TEST_CLASS_SOURCE, {})
+        )
+        return torch.load(**graph_params) if graph_params else None
 
     def _init_model(self) -> CLIPGraph:
         model_params = deepcopy(self.parameters).get(ParameterKeys.MODEL)
@@ -163,8 +170,10 @@ class CLIPGraphRun(CLIPRun):
 
         print(f"Having {len(classes)} classes")
 
+        graph = self.test_graph if self.test_graph else self.graph
+
         class_feats = self.model.encode_graph(
-            self.graph.x_dict, self.graph.edge_index_dict, normalize=True
+            graph.x_dict, graph.edge_index_dict, normalize=True
         )
 
         bar = self.get_bar(self.test_loader, desc="Test")
