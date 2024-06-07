@@ -32,7 +32,14 @@ class ImageGraphMultiTaskDataset(ImageTextMultiTaskDataset):
         self.mapping_target_col = mapping_target_col
 
         self.graphidx2class = {
-            task: {k: v[self.mapping_target_col] for k, v in mapping.iterrows()}
+            task: {
+                k: (
+                    v[self.mapping_target_col]
+                    if type(self.mapping_target_col) == "str"
+                    else v[mapping.columns[self.mapping_target_col]]
+                )
+                for k, v in mapping.iterrows()
+            }
             for task, mapping in self.graph_class_mapping.items()
         }
 

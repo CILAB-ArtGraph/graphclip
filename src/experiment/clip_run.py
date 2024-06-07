@@ -154,7 +154,6 @@ class CLIPRun(Run):
         self.bar = self.parameters.get(ParameterKeys.BAR, False)
         self.task = self.parameters.get(ParameterKeys.TASK, ParameterKeys.DEF_TASK)
         self.trigger = False
-        self.checkpoint_dir = self.parameters.get(ParameterKeys.CHECKPOINT, None)
 
     def schedule(self, phase, **kwargs):
         if not self.scheduler:
@@ -308,7 +307,7 @@ class CLIPRun(Run):
         return dataset.dataset[dataset.dataset.columns[-1]].unique().tolist()
 
     def load_state_dict(self):
-        out_dir = self.checkpoint_dir if self.checkpoint_dir else self.parameters.get(ParameterKeys.OUT_DIR)
+        out_dir = self.parameters.get(ParameterKeys.OUT_DIR)
         if os.path.exists(f"{out_dir}/ParameterKeys.MODEL.pt"):
             print("loading state dict")
             state_dict = torch.load(

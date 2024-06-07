@@ -8,6 +8,7 @@ import src.models.graph as graph_module
 from torch_geometric.data import HeteroData
 import torch
 from src.data import DataDict
+import pandas as pd
 
 
 class CLIPGraphMultitaskRun(CLIPMultitaskRun):
@@ -18,6 +19,32 @@ class CLIPGraphMultitaskRun(CLIPMultitaskRun):
         super()._init_general()
         self.graph = self._init_graph()
         self.test_graph = self._init_test_graph()
+        self.class2graphidx, self.graphidx2class = self._init_test_mapping()
+
+    def _init_test_mapping(self):
+        test_mapping_params = deepcopy(
+            self.parameters.get(ParameterKeys.TEST_MAPPING, None)
+        )
+        if test_mapping_params is None:
+            return {}, {}
+        graph_class_mapping_params = test_mapping_params.get("graph_class_mapping")
+        mapping_kwargs = test_mapping_params.get("mapping_kwargs")
+        mapping_target_col = test_mapping_params.get("mapping_target_col")
+        graph_class_mapping = {
+            task: pd.read_csv(
+                graph_class_mapping_params[task], **mapping_kwargs.get(task, {})
+            )
+            for task in graph_class_mapping_params.keys()
+        }
+        graph_idx2class = {
+            task: {k: v[mapping_target_col.get(task)] for k, v in mapping.iterrows()}
+            for task, mapping in graph_class_mapping.items()
+        }
+        class2graphidx = {
+            task: {v: k for k, v in task_mapping.items()}
+            for task, task_mapping in graph_idx2class.items()
+        }
+        return class2graphidx, graph_idx2class
 
     def _init_test_graph(self):
         graph_params = deepcopy(
@@ -32,7 +59,11 @@ class CLIPGraphMultitaskRun(CLIPMultitaskRun):
         return CLIPGraphMultiTask(
             clip_model=clip_model,
             gnn_model=gnn_model,
-            metadata=self.graph.metadata(),
+            metadata=(
+                self.test_graph.metadata()
+                if self.test_graph is not None
+                else self.graph.metadata()
+            ),
             **model_params.get(ParameterKeys.PARAMS, {}),
         ).to(self.device)
 
@@ -161,8 +192,12 @@ class CLIPGraphMultitaskRun(CLIPMultitaskRun):
 
     def get_class_maps(self):
         return (
-            self.train_loader.dataset.class2graphidx,
-            self.train_loader.dataset.graphidx2class,
+            (self.class2graphidx, self.graphidx2class)
+            if self.class2graphidx is not None
+            else (
+                self.train_loader.dataset.class2graphidx,
+                self.train_loader.dataset.graphidx2class,
+            )
         )
 
     @torch.no_grad()

@@ -41,3 +41,4 @@ class ParameterKeys(StrEnum):
     LAMBDA = "lambda"
     CHECKPOINT = "checkpoint"
     TEST_CLASS_SOURCE = "test_class_source"
+    TEST_MAPPING = "test_mapping"
