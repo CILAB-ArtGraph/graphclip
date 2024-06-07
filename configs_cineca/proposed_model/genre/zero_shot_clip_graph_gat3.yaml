@@ -92,19 +92,19 @@ metrics:
     name: Accuracy
     params:
       task: multiclass
-      num_classes: 32
+      num_classes: 18
       top_k: 1
   top2:
     name: Accuracy
     params:
       task: multiclass
-      num_classes: 32
+      num_classes: 18
       top_k: 2
   f1score:
     name: F1Score
     params:
       task: multiclass
-      num_classes: 32
+      num_classes: 18
       average: macro
 device: cuda
 out_dir: models/proposed/genre/zero_shot_clip_graph_gat3
