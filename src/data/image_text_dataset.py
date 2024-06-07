@@ -18,12 +18,28 @@ class ImageTextDatset(Dataset):
         dataset: Union[str, pd.DataFrame],
         img_dir: str,
         preprocess: Optional[Union[Compose, dict, str]] = None,
+        class_mapping: Optional[Union[str, pd.DataFrame]] = None,
+        mapping_kwargs: Optional[dict] = None,
+        mapping_target_col: Optional[Union[str, int]] = None,
         **kwargs,
     ):
         super().__init__()
         self.dataset = self._init_dataset(dataset, **kwargs)
         self.img_dir = img_dir
         self.preprocess = self._init_preprocess(preprocess=preprocess)
+        # class mapping for zero shot
+        self.class_mapping = (
+            self._init_dataset(class_mapping, **mapping_kwargs)
+            if class_mapping is not None
+            else None
+        )
+        self.mapping_target_col = mapping_target_col
+        self.idx2class = (
+            {k: v[self.mapping_target_col] for k, v in self.class_mapping.iterrows()}
+            if self.class_mapping is not None
+            else {}
+        )
+        self.class2idx = {v: k for k, v in self.idx2class.items()}
 
     def _init_preprocess(self, preprocess):
         if not preprocess:
@@ -92,7 +108,7 @@ class CLIPDataset(ImageTextDatset):
         for entry, val in cls_preprocess.items():
             out.append(augmentations[entry](**val).augment)
         return out
-    
+
     def augment_texts(self, texts: list[str]) -> list[str]:
         if not self.preprocess_cls:
             return texts
@@ -106,24 +122,24 @@ class CLIPDataset(ImageTextDatset):
         # OUTPUT -> (images, texts, gts)
         images = [x[DataDict.IMAGE] for x in batched_input]
         classes = [x[DataDict.TEXT] for x in batched_input]
-        
+
         # collect images
         batch_images = torch.stack(images)
-        
+
         # collate texts
         classes_idxs = [self.class2idx[x] for x in classes]
         unique_classes = list(set(classes_idxs))
         class2batch = {v: k for k, v in enumerate(unique_classes)}
-        
+
         # get summaries
         summaries = self.target.loc[unique_classes, DataDict.SUMMARY].tolist()
-        
+
         # augment summaries
         aug_summaries = self.augment_texts(summaries)
-        
+
         # get gts
-        gts = torch.as_tensor([class2batch[x] for x in classes_idxs])#.float()
-        
+        gts = torch.as_tensor([class2batch[x] for x in classes_idxs])  # .float()
+
         return {
             DataDict.IMAGE: batch_images,
             DataDict.TEXT: aug_summaries,
