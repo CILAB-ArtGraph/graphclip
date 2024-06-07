@@ -277,7 +277,7 @@ class ArtGraphInductiveClassPruner:
             for k, v in self.mapping_classes.items()
         }
         new_mapping = {
-            k: {o: n for o, n in enumerate(v["idx"].unique().tolist())}
+            k: {n: o for o, n in enumerate(v["idx"].unique().tolist())}
             for k, v in pruned_classes.items()
         }
         return pruned_classes, new_mapping
@@ -318,8 +318,7 @@ class ArtGraphInductiveClassPruner:
 
         # postprocessing classes
         for cls, df in classes.items():
-            rev_mapping = {v:k for k, v in mapping[cls].items()}
-            df["idx"] = df["idx"].map(rev_mapping)
+            df["idx"] = df["idx"].map(mapping[cls])
             df.reset_index(drop=True, inplace=True)
             classes[cls] = df
         return out_data, classes
