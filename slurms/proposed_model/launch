@@ -9,7 +9,6 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:1
 #SBATCH --mem=123000
-#SBATCH --exclusive
 #SBATCH --job-name=experiment
 #SBATCH --out=experiment.out
 #SBATCH --err=experiment.out
