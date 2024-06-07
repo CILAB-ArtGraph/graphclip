@@ -33,7 +33,11 @@ class CLIPGraphRun(CLIPRun):
         return CLIPGraph(
             clip_model=clip_model,
             gnn_model=gnn_model,
-            metadata=self.graph.metadata(),
+            metadata=(
+                self.test_graph.metadata()
+                if self.test_graph is not None
+                else self.graph.metadata()
+            ),
             **model_params.get(ParameterKeys.PARAMS, {}),
         ).to(self.device)
 
@@ -157,7 +161,12 @@ class CLIPGraphRun(CLIPRun):
         )
 
     def get_class_maps(self):
-        return self.train_loader.dataset.class2idx, self.train_loader.dataset.idx2class
+        dataset = (
+            self.test_loader.dataset
+            if self.test_loader.dataset.class2idx
+            else self.train_loader.dataset
+        )
+        return dataset.class2idx, dataset.idx2class
 
     @torch.no_grad()
     def test(self) -> dict[str, float]:
@@ -170,7 +179,7 @@ class CLIPGraphRun(CLIPRun):
 
         print(f"Having {len(classes)} classes")
 
-        graph = self.test_graph if self.test_graph else self.graph
+        graph = self.test_graph if self.test_graph is not None else self.graph
 
         class_feats = self.model.encode_graph(
             graph.x_dict, graph.edge_index_dict, normalize=True
