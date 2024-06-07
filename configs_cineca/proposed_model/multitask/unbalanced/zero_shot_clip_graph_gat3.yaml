@@ -1,0 +1,164 @@
+model:
+  visual:
+    model_name: &model_name ViT-B-32
+    pretrained: &pretrained laion2b_s34b_b79k
+    output_dict: true
+  gnn:
+    name: GAT
+    params:
+      in_channels: 512
+      hidden_channels: 512
+      num_layers: 2
+      add_self_loops: false
+      v2: true
+      dropout: 0.25
+      heads: 4
+      concat: false
+      act: LeakyReLU
+      act_kwargs:
+        negative_slope: 0.2
+      norm: LayerNorm
+      norm_kwargs:
+        mode: node
+        affine: false
+  params:
+    target_nodes_t: &tasks [style, genre]
+    use_logit_scale: true
+dataset:
+  train:
+    name: &data_class ImageGraphMultiTaskDataset
+    params:
+      dataset: data/processed/zero-shot/normal/artgraph_clip_multitask/train.csv
+      img_dir: &img_dir data/raw/images-resized
+      preprocess:
+        name: clip
+        params:
+          model_name: *model_name
+          pretrained: *pretrained
+      graph_class_mapping:
+        style: &style_mapping data/processed/zero-shot/graph/style_mapping.csv
+        genre: &genre_mapping data/processed/zero-shot/graph/genre_mapping.csv
+      mapping_target_col: &mapping_target_col_name 1
+      tasks: *tasks
+  val:
+    name: *data_class
+    params:
+      dataset: data/processed/zero-shot/normal/artgraph_clip_multitask/val.csv
+      img_dir: *img_dir
+      preprocess:
+        name: clip
+        params:
+          model_name: *model_name
+          pretrained: *pretrained
+      graph_class_mapping: 
+        style: *style_mapping
+        genre: *genre_mapping
+      mapping_target_col: *mapping_target_col_name
+      tasks: *tasks
+  test:
+    name: ImageTextMultiTaskDataset
+    params:
+      dataset: data/processed/normal/artgraph_clip_multitask/test.csv
+      img_dir: *img_dir
+      tasks: *tasks
+      preprocess:
+        name: clip
+        params:
+          model_name: *model_name
+          pretrained: *pretrained
+dataloader:
+  batch_size: 256
+  shuffle: true
+  drop_last: false
+  num_workers: 8
+criterion:
+  style:
+    name: CLIPImageGraphLoss
+    params:
+      return_logits: true
+      target_node: style
+  genre:
+    name: CLIPImageGraphLoss
+    params:
+      return_logits: true
+      target_node: genre
+optimizer:
+  name: Adam
+  params:
+    lr: 1e-05
+scheduler:
+  name: HuggingFaceCosineScheduler
+  params:
+    num_warmup_steps: 1000
+early_stop:
+  name: EarlyStopping
+  params:
+    verbose: true
+    patience: 10
+metrics:
+  style:
+    top1:
+      name: Accuracy
+      params:
+        task: &task multiclass
+        num_classes: 32
+        top_k: 1
+    top2:
+      name: Accuracy
+      params:
+        task: *task
+        num_classes: 32
+        top_k: 2
+    f1score:
+      name: F1Score
+      params:
+        task: *task
+        num_classes: 32
+        average: macro
+  genre: 
+    top1:
+      name: Accuracy
+      params:
+        task: *task
+        num_classes: 18
+        top_k: 1
+    top2:
+      name: Accuracy
+      params:
+        task: *task
+        num_classes: 18
+        top_k: 2
+    f1score:
+      name: F1Score
+      params:
+        task: *task
+        num_classes: 18
+        average: macro
+device: cuda
+out_dir: models/proposed/multitask/zero_shot_clip_graph_gat3
+clean_out_dir: true
+warmup: 10
+num_epochs: 50
+bar: true
+class_source:
+  f: data/processed/zero-shot/graph/train_graph.pt
+  map_location: cuda
+test_class_source:
+  f: data/processed/graph/0_5/train_graph.pt
+  map_location: cuda
+lambda:
+  style: 0.64
+  genre: 0.36
+task: *tasks
+test_mapping:
+  graph_class_mapping:
+    style: data/external/artgraph2bestemotions/mapping/style_entidx2name.csv
+    genre: data/external/artgraph2bestemotions/mapping/genre_entidx2name.csv
+  mapping_kwargs:
+    style:
+      names: &mapping_kwargs [idx, name]
+    genre:
+      names: *mapping_kwargs
+  mapping_target_col:
+    style: name
+    genre: name
