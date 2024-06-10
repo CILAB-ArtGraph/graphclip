@@ -132,7 +132,7 @@ metrics:
         num_classes: 18
         average: macro
 device: cuda
-out_dir: models/proposed/multitask/zero_shot_clip_graph_sage3
+out_dir: models/proposed/multitask/unbalanced/zero_shot_clip_graph_sage3
 clean_out_dir: true
 warmup: 10
 num_epochs: 50
@@ -144,8 +144,8 @@ test_class_source:
   f: data/processed/graph/0_5/train_graph.pt
   map_location: cuda
 lambda:
-  style: 0.64
-  genre: 0.36
+  style: 0.63
+  genre: 0.37
 task: *tasks
 test_mapping:
   graph_class_mapping:
