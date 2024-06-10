@@ -92,7 +92,7 @@ class CLIPGraphExplainer(AbstractExplainer):
             return node
         with self.neo4j_driver.session(database=self.neo4jdb) as session:
             ans = session.run(
-                f"match (n:{node.get('properties').get('type').capitalize()} {{name: '{node.get('properties').get('label')}' }}) return n"
+                f"match (n:{node.get('properties').get('type').capitalize()} {{name: \"{node.get('properties').get('label')}\" }}) return n"
             ).data()[0]["n"]
         node["properties"].update({"neo4j": ans})
         return node
@@ -101,11 +101,13 @@ class CLIPGraphExplainer(AbstractExplainer):
         if not self.mappings:
             return node
         node_prop = node.get("properties")
-        node["properties"]["label"] = self.mappings.get(node_prop.get("type")).get(
-            node_prop.get("idx")
+        node["properties"]["label"] = self.mappings.get(node_prop.get("type"), {}).get(
+            node_prop.get("idx"), None
         )
+        
         # TODO: add neo4j information about the nodes
-        node = self.get_neo4j_info(node)
+        if node.get("properties", {}).get("label", None) is not None:
+            node = self.get_neo4j_info(node)
         return node
 
     def plot_explanation(
