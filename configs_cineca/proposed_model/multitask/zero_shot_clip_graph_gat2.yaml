@@ -159,3 +159,6 @@ test_mapping:
   mapping_target_col:
     style: name
     genre: name
+lambda:
+  style: 0.5
+  genre: 0.5
