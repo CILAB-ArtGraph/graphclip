@@ -90,7 +90,7 @@ metrics:
 device: cuda
 out_dir: models/genre/normal_clip_fine_tuning_naive
 warmup: 5
-num_epochs: 1
+num_epochs: 50
 bar: True
 class_source: *styles
 class_key: summary
