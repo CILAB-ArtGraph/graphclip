@@ -79,6 +79,10 @@ optimizer:
     lr: 1e-3
 scheduler:
   name: ReduceLROnPlateau
+  params:
+    factor: 0.1
+    patience: 2
+    cooldown: 1
 early_stop:
   name: EarlyStopping
   params:
