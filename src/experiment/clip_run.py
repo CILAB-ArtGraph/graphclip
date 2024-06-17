@@ -173,10 +173,10 @@ class CLIPRun(Run):
     ) -> None:
         print(f"Epoch {epoch}/{self.num_epochs}: {phase} loss: {cumulated_loss:.4f}")
         if metrics:
-            for k, v in metrics:
-                metric_value = v.compute()
+            for k, v in metrics.items():
+                metric_value = v.compute().cpu().item()
                 print(
-                    f"Epoch {epoch}/{self.num_epochs}: {phase} {k}: {metric_value.item():.4f}"
+                    f"Epoch {epoch}/{self.num_epochs}: {phase} {k}: {metric_value:.4f}"
                 )
 
     def early_stop_callback(self, cumulated_loss: float) -> bool:
