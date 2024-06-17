@@ -105,7 +105,7 @@ class CLIPRun(Run):
         if not params:
             return None
         scheduler_name = params.get(ParameterKeys.NAME)
-        scheduler_params = params.get(ParameterKeys.PARAMS)
+        scheduler_params = params.get(ParameterKeys.PARAMS, {})
         if scheduler_name == ParameterKeys.HUGGINGFACE_COS_SCHEDULER:
             scheduler_params = self._init_cosine_scheduler_params(
                 params=scheduler_params
