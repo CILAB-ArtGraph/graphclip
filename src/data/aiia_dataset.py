@@ -32,7 +32,7 @@ class AIxIADataset(Dataset):
         image = self._load_image(image_name)
         image = self.preprocess(image) if self.preprocess else image
         label = self.mapping_dict[class_name]
-        return {DataDict.IMAGE: image, DataDict.GTS: torch.as_tensor([label])}
+        return {DataDict.IMAGE: image, DataDict.GTS: label}
 
     def __len__(self):
         return len(self.dataset)
