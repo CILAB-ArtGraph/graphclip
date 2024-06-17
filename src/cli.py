@@ -50,7 +50,8 @@ def test(parameters, graph, ablation, multitask):
 @click.option("--graph", is_flag=True, default=False)
 @click.option("--ablation", is_flag=True, default=False)
 @click.option("--multitask", is_flag=True, default=False)
-def experiment(parameters, graph, ablation, multitask):
+@click.option("--aixia", is_flag=True, default=False)
+def experiment(parameters, graph, ablation, multitask, aixia):
     from src.experiment import run_experiment
 
-    run_experiment(load_ruamel(parameters), graph, ablation, multitask)
+    run_experiment(load_ruamel(parameters), graph, ablation, multitask, aixia)

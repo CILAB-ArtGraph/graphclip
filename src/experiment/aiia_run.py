@@ -17,9 +17,14 @@ class AIxIARun(CLIPRun):
     def _init_model(self) -> AIxIAModel:
         model_params = deepcopy(self.parameters).get(ParameterKeys.MODEL)
         vit = create_model(**model_params.get(ParameterKeys.VISUAL))
-        vit.reset_classifier(self.parameters.get(ParameterKeys.PARAMS).get("hidden_dim"))
+        vit.reset_classifier(model_params.get(ParameterKeys.PARAMS).get("hidden_dim"))
         gnn_model = self.__init_gnn()
-        return AIxIAModel(vit=vit, gnn=gnn_model, metadata=self.graph.metadata(), )
+        return AIxIAModel(
+            vit=vit,
+            gnn=gnn_model,
+            metadata=self.graph.metadata(),
+            **model_params.get(ParameterKeys.PARAMS, {}),
+        )
 
     def __init_gnn(self) -> BasicGNN:
         gnn_params = deepcopy(
@@ -124,6 +129,8 @@ class AIxIARun(CLIPRun):
             p.requires_grad = False
         for p in self.model.vit.head.parameters():
             p.requires_grad = True
+
+        self.model = self.model.to(self.device)
 
         for epoch in range(1, self.num_epochs + 1):
             self.train_epoch(epoch=epoch)

@@ -1,0 +1,113 @@
+model:
+  visual:
+    model_name: vit_base_patch16_224.augreg_in1k
+    pretrained: True
+  gnn:
+    name: GAT
+    params:
+      in_channels: 512
+      hidden_channels: 512
+      num_layers: 1
+      add_self_loops: false
+      v2: false
+      dropout: 0.25
+      heads: 1
+      concat: false
+      act: LeakyReLU
+      act_kwargs:
+        negative_slope: 0.2
+  params:
+    out_channels: &num_classes 32
+    hidden_dim: 512
+    target_node: style
+dataset:
+  train:
+    name: &data_class AIxIADataset
+    params:
+      img_dir: &images data/raw/images-resized
+      dataset: data/processed/normal/artgraph_clip_style/train.csv
+      mapping: &mapping data/external/artgraph2bestemotions/mapping/style_entidx2name.csv
+      mapping_kwargs: 
+        names:
+          - idx
+          - name
+      preprocess:
+        name: clip
+        params:
+          model_name: ViT-B-32
+          pretrained: laion2b_s34b_b79k
+  val:
+    name: *data_class
+    params:
+      img_dir: *images
+      dataset: data/processed/normal/artgraph_clip_style/val.csv
+      mapping: *mapping
+      mapping_kwargs: 
+        names:
+          - idx
+          - name
+      preprocess:
+        name: clip
+        params:
+          model_name: ViT-B-32
+          pretrained: laion2b_s34b_b79k
+  test:
+    name: *data_class
+    params:
+      img_dir: *images 
+      dataset: data/processed/normal/artgraph_clip_style/test.csv
+      mapping: *mapping
+      mapping_kwargs: 
+        names:
+          - idx
+          - name
+      preprocess:
+        name: clip
+        params:
+          model_name: ViT-B-32
+          pretrained: laion2b_s34b_b79k
+dataloader:
+  batch_size: 128
+  shuffle: True
+  drop_last: False
+  num_workers: 8
+criterion:
+  name: CrossEntropyLoss
+optimizer:
+  name: Adam
+  params:
+    lr: 1e-3
+scheduler:
+  name: ReduceLROnPlateau
+early_stop:
+  name: EarlyStopping
+  params:
+    verbose: true
+    patience: 10
+metrics:
+  top1:
+    name: Accuracy
+    params:
+      task: multiclass
+      num_classes: *num_classes 
+      top_k: 1
+  top2:
+    name: Accuracy
+    params:
+      task: multiclass
+      num_classes: *num_classes
+      top_k: 2
+  f1score:
+    name: F1Score
+    params:
+      task: multiclass
+      num_classes: *num_classes
+      average: macro 
+device: cuda
+out_dir: models/style/normal_aixia
+clean_out_dir: true
+num_epochs: 50
+bar: true
+class_source:
+  f: data/processed/graph/0_5/train_graph.pt
+  map_location: cuda

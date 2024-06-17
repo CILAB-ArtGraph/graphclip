@@ -5,6 +5,7 @@ from .vit_multitask_run import ViTMultiTaskRun
 from .run import Run
 from .clip_multitask_run import CLIPMultitaskRun
 from .clip_graph_multitask_run import CLIPGraphMultitaskRun
+from .aiia_run import AIxIARun
 import json
 from .utils import ParameterKeys
 import os
@@ -67,8 +68,10 @@ def launch_multitask(parameters, graph: bool = False, ablation: bool = False):
     launch_experiment(parameters=parameters, run_cls=run_cls)
 
 
-def launch_single_task(parameters, graph: bool = False, ablation: bool = False):
-    if ablation:
+def launch_single_task(parameters, graph: bool = False, ablation: bool = False, aixia: bool = False):
+    if aixia:
+        run_cls = AIxIARun
+    elif ablation:
         run_cls = ViTRun
     elif graph:
         run_cls = CLIPGraphRun
@@ -78,9 +81,9 @@ def launch_single_task(parameters, graph: bool = False, ablation: bool = False):
 
 
 def run_experiment(
-    parameters, graph: bool = False, ablation: bool = False, multitask: bool = False
+    parameters, graph: bool = False, ablation: bool = False, multitask: bool = False, aixia: bool = False,
 ):
     if multitask:
         launch_multitask(parameters=parameters, graph=graph, ablation=ablation)
     else:
-        launch_single_task(parameters=parameters, graph=graph, ablation=ablation)
+        launch_single_task(parameters=parameters, graph=graph, ablation=ablation, aixia=aixia)
