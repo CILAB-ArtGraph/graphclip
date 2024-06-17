@@ -22,7 +22,7 @@ class AIxIADataset(Dataset):
         self.dataset = self.init_dataset(dataset, **data_kwargs)
         self.preprocess = self.init_preprocess(preprocess)
         self.mapping = self.init_dataset(mapping, **mapping_kwargs)
-        self.mapping_dict = {val[1]: val[0] for _, val in self.mapping.iterrows()}
+        self.mapping_dict = {val.iloc[1]: val.iloc[0] for _, val in self.mapping.iterrows()}
 
     def _load_image(self, image_fname) -> Image.Image:
         return Image.open(f"{self.img_dir}/{image_fname}").convert("RGB")
