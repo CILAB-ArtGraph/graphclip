@@ -83,7 +83,7 @@ class AIxIARun(CLIPRun):
             images = data_dict[DataDict.IMAGE].to(self.device)
             gts = data_dict[DataDict.GTS].to(self.device)
 
-            out = self.model(image=images)
+            out = self.model(images, self.graph.x_dict, self.graph.edge_index_dict)
             loss_out = self.criterion(out, gts)
             batch_loss = loss_out.cpu().item()
 
