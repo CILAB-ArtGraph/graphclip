@@ -1,24 +1,22 @@
 model:
   visual:
-    model_name: vit_base_patch16_224.augreg_in1k
+    model_name: vit_base_patch16_224
     pretrained: True
   gnn:
     name: GAT
     params:
       in_channels: 512
-      hidden_channels: 512
+      hidden_channels: 128
       num_layers: 1
       add_self_loops: false
       v2: false
       dropout: 0.25
       heads: 1
       concat: false
-      act: LeakyReLU
-      act_kwargs:
-        negative_slope: 0.2
+      act: Tanh
   params:
     out_channels: &num_classes 18
-    hidden_dim: 512
+    hidden_dim: 128
     target_node: genre
 dataset:
   train:
@@ -76,13 +74,15 @@ criterion:
 optimizer:
   name: Adam
   params:
-    lr: 1e-3
+    lr: 1e-4
 scheduler:
   name: ReduceLROnPlateau
   params:
-    factor: 0.1
-    patience: 2
-    cooldown: 1
+    factor: 0.5
+    patience: 1
+    verbose: true
+    min_lr: 1e-7
+    threshold: 1e-4
 early_stop:
   name: EarlyStopping
   params:
