@@ -11,7 +11,7 @@ model:
       add_self_loops: false
       v2: false
       dropout: 0.25
-      heads: 1
+      heads: 4
       concat: false
       act: Tanh
   params:
