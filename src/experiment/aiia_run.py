@@ -49,6 +49,7 @@ class AIxIARun(CLIPRun):
             desc=f"{ParameterKeys.TRAINING} at epoch {epoch}/{self.num_epochs}",
         )
 
+        metrics = deepcopy(self.metrics)
         self.model.train()
         for ix, data_dict in bar:
             images = data_dict[DataDict.IMAGE].to(self.device)
@@ -64,10 +65,14 @@ class AIxIARun(CLIPRun):
             cumulated_loss = cumulated_loss + batch_loss
 
             self.schedule(phase=ParameterKeys.TRAINING)
-
+            for m in metrics:
+                metrics[m].update(out.cpu(), gts.cpu())
         cumulated_loss = cumulated_loss / len(self.train_loader)
         self.print_stats(
-            epoch=epoch, cumulated_loss=cumulated_loss, phase=ParameterKeys.TRAINING
+            epoch=epoch,
+            cumulated_loss=cumulated_loss,
+            phase=ParameterKeys.TRAINING,
+            metrics=metrics,
         )
 
     @torch.no_grad()
@@ -77,6 +82,7 @@ class AIxIARun(CLIPRun):
             loader=self.val_loader,
             desc=f"{ParameterKeys.VALIDATION} at epoch {epoch}/{self.num_epochs}",
         )
+        metrics = deepcopy(self.metrics)
 
         self.model.eval()
         for ix, data_dict in bar:
@@ -92,7 +98,9 @@ class AIxIARun(CLIPRun):
             self.update_bar(bar=bar, loss=batch_loss)
 
             # scheduler step
-            self.schedule(ParameterKeys.VALIDATION)
+            self.schedule(ParameterKeys.VALIDATION, metrics=cumulated_loss)
+            for m in metrics:
+                metrics[m].update(out.cpu(), gts.cpu())
 
         # early stop
         self.trigger = self.early_stop_callback(cumulated_loss=cumulated_loss)
@@ -103,6 +111,7 @@ class AIxIARun(CLIPRun):
             epoch=epoch,
             cumulated_loss=cumulated_loss,
             phase=ParameterKeys.VALIDATION,
+            metrics=metrics,
         )
 
     @torch.no_grad()
@@ -120,7 +129,7 @@ class AIxIARun(CLIPRun):
 
             out = self.model(imgs, self.graph.x_dict, self.graph.edge_index_dict)
             for m in metrics:
-                metrics[m].update(out, gts)
+                metrics[m].update(out.cpu(), gts.cpu())
         return {k: v.compute().cpu().item() for k, v in metrics.items()}
 
     def launch(self):
