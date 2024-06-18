@@ -113,7 +113,7 @@ criterion:
 optimizer:
   name: Adam
   params:
-    lr: 1e-5
+    lr: 1e-3
 scheduler:
   name: ReduceLROnPlateau
   params:
@@ -167,7 +167,7 @@ metrics:
         num_classes: 18
         average: macro
 device: cuda
-out_dir: models/multitask/normal_clip_fine_tunining_mistral
+out_dir: models/multitask/aixia
 num_epochs: 50
 bar: True
 key: summary
