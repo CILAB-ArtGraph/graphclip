@@ -63,7 +63,7 @@ class CLIPMultitaskRun(CLIPRun):
         print(f"Epoch {epoch}/{self.num_epochs}: {phase} loss: {cumulated_loss:.4f}")
         if metrics:
             for task in self.task:
-                for k, v in metrics[task]:
+                for k, v in metrics[task].items():
                     metric_value = v.compute()
                     print(
                         f"Epoch {epoch}/{self.num_epochs}: Task: {task}, {phase} {k}: {metric_value.item():.4f}"
