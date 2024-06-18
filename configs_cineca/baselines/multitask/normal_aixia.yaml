@@ -1,0 +1,180 @@
+model:
+  visual:
+    model_name: vit_base_patch16_224
+    pretrained: True
+    num_classes: 32
+    checkpoint: models/vit.pt
+  gnn:
+    name: GAT
+    params:
+      in_channels: [-1, -1]
+      hidden_channels: 128
+      num_layers: 1
+      add_self_loops: false
+      v2: false
+      dropout: 0.25
+      heads: 1
+      concat: false
+      act: Tanh
+  params:
+    target_nodes_t: &tasks [style, genre] 
+    hidden_dim: 128
+    out_channels:
+      style: 32 
+      genre: 18 
+    pca: data/interim/pca.pk
+    return_dict: True
+dataset:
+  train:
+    name: &data_class AIxIAMultitaskDataset
+    params:
+      tasks: *tasks
+      dataset: data/processed/normal/artgraph_clip_multitask/train.csv
+      img_dir: &img_dir data/raw/images-resized
+      mappings:
+        style: data/external/artgraph2bestemotions/mapping/style_entidx2name.csv
+        genre: data/external/artgraph2bestemotions/mapping/genre_entidx2name.csv
+      mapping_kwargs:
+        style:
+          names: [idx, name]
+        genre:
+          names: [idx, name]
+      preprocess:
+        name: compose
+        params:
+          Resize: 
+            size: [224, 224]
+          CenterCrop:
+            size: 224
+          ToTensor: 
+          Normalize: 
+            mean: [0.5, 0.5, 0.5]
+            std: [0.5, 0.5, 0.5]
+  val:
+    name: *data_class
+    params:
+      tasks: *tasks
+      dataset: data/processed/normal/artgraph_clip_multitask/val.csv
+      img_dir: *img_dir
+      mappings:
+        style: data/external/artgraph2bestemotions/mapping/style_entidx2name.csv
+        genre: data/external/artgraph2bestemotions/mapping/genre_entidx2name.csv
+      mapping_kwargs:
+        style: 
+          names: [idx, name]
+        genre: 
+          names: [idx, name]
+      preprocess:
+        name: compose
+        params:
+          Resize: 
+            size: [224, 224]
+          CenterCrop:
+            size: 224
+          ToTensor: 
+          Normalize: 
+            mean: [0.5, 0.5, 0.5]
+            std: [0.5, 0.5, 0.5]
+  test:
+    name: *data_class
+    params:
+      tasks: *tasks
+      dataset: data/processed/normal/artgraph_clip_multitask/test.csv
+      img_dir: *img_dir
+      mappings:
+        style: data/external/artgraph2bestemotions/mapping/style_entidx2name.csv
+        genre: data/external/artgraph2bestemotions/mapping/genre_entidx2name.csv
+      mapping_kwargs:
+        style:
+          names: [idx, name]
+        genre:
+          names: [idx, name]
+      preprocess:
+        name: compose
+        params:
+          Resize: 
+            size: [224, 224]
+          CenterCrop:
+            size: 224
+          ToTensor: 
+          Normalize: 
+            mean: [0.5, 0.5, 0.5]
+            std: [0.5, 0.5, 0.5]
+dataloader:
+  batch_size: 128
+  shuffle: true
+  drop_last: false
+  num_workers: 8
+criterion:
+  style:
+    name: CrossEntropyLoss
+  genre:
+    name: CrossEntropyLoss
+optimizer:
+  name: Adam
+  params:
+    lr: 1e-5
+scheduler:
+  name: ReduceLROnPlateau
+  params:
+    factor: 0.5
+    patience: 1
+    verbose: true
+    min_lr: 1e-7
+    threshold: 1e-4
+early_stop:
+  name: EarlyStopping
+  params:
+    verbose: True
+    patience: 10
+metrics:
+  style:
+    top1:
+      name: Accuracy
+      params:
+        task: &task multiclass
+        num_classes: 32
+        top_k: 1
+    top2:
+      name: Accuracy
+      params:
+        task: *task
+        num_classes: 32
+        top_k: 2
+    f1score:
+      name: F1Score
+      params:
+        task: *task
+        num_classes: 32
+        average: macro
+  genre: 
+    top1:
+      name: Accuracy
+      params:
+        task: *task
+        num_classes: 18
+        top_k: 1
+    top2:
+      name: Accuracy
+      params:
+        task: *task
+        num_classes: 18
+        top_k: 2
+    f1score:
+      name: F1Score
+      params:
+        task: *task
+        num_classes: 18
+        average: macro
+device: cuda
+out_dir: models/multitask/normal_clip_fine_tunining_mistral
+num_epochs: 50
+bar: True
+key: summary
+task: *tasks
+lambda:
+  style: 0.5
+  genre: 0.5
+class_source:
+  f: data/processed/graph/aixia/1_0/train_graph.pt
+  map_location: cuda

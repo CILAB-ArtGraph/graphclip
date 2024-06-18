@@ -6,6 +6,7 @@ from .run import Run
 from .clip_multitask_run import CLIPMultitaskRun
 from .clip_graph_multitask_run import CLIPGraphMultitaskRun
 from .aiia_run import AIxIARun
+from .aiia_multitask_run import AIxIAMultiTaskRun
 import json
 from .utils import ParameterKeys
 import os
@@ -58,8 +59,10 @@ def launch_experiment(parameters, run_cls: Run):
         json.dump(test_metrics, f)
 
 
-def launch_multitask(parameters, graph: bool = False, ablation: bool = False):
-    if ablation:
+def launch_multitask(parameters, graph: bool = False, ablation: bool = False, aixia: bool = False):
+    if aixia:
+        run_cls = AIxIAMultiTaskRun
+    elif ablation:
         run_cls = ViTMultiTaskRun
     elif graph:
         run_cls = CLIPGraphMultitaskRun
@@ -84,6 +87,6 @@ def run_experiment(
     parameters, graph: bool = False, ablation: bool = False, multitask: bool = False, aixia: bool = False,
 ):
     if multitask:
-        launch_multitask(parameters=parameters, graph=graph, ablation=ablation)
+        launch_multitask(parameters=parameters, graph=graph, ablation=ablation, aixia=aixia)
     else:
         launch_single_task(parameters=parameters, graph=graph, ablation=ablation, aixia=aixia)

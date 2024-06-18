@@ -4,3 +4,4 @@ from .vit import ViT
 from .vit_multi_task import ViTMultiTask
 from .clip_graph_multitask import CLIPGraphMultiTask
 from .aiia_model import AIxIAModel
+from .aiia_multitask_model import AIxIAMultiTaskModel

@@ -9,3 +9,4 @@ from .image_text_multitask_dataset import (
 from .image_multitask_dataset import ImageMultiTaskDataset
 from .image_graph_multitask_dataset import ImageGraphMultiTaskDataset
 from .aiia_dataset import AIxIADataset
+from .aiia_multitask_dataset import AIxIAMultitaskDataset
