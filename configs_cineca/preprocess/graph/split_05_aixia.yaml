@@ -1,0 +1,13 @@
+data:
+  root: data/external/artgraph2bestemotions
+  vis_feats_root: data/external/artgraph2bestemotions/raw/node-feat/artwork/node-feat-vit-fine-tuning.csv
+  labels: 0 
+  vis_feats: 2
+pruner:
+  mapping: data/external/artgraph2bestemotions/mapping/artwork_entidx2name.csv
+  source: data/processed/normal/artgraph_clip_multitask/train.csv
+  mapping_kwargs: 
+    names: [idx, name]
+  sample: .5
+  random_state: 42
+out_dir: data/processed/graph/aixia/0_5
