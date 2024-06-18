@@ -144,7 +144,7 @@ if __name__ == "__main__":
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', min_lr = 1e-6, verbose = True, factor = .1, patience = 1,
                                                 threshold = 1e-3)
         early_stop= EarlyStopping(path="models/vit_just_head.pt", patience = 5)
-        best_model_head=fine_tune(model, train_loader, validation_loader, criterion, optimizer, scheduler, early_stop, num_epochs = 30)
+        best_model_head=fine_tune(model, train_loader, validation_loader, criterion, optimizer, scheduler, early_stop, num_epochs = 5)
 
     for p in model.blocks[11].parameters():#last feature extraction layer
         p.requires_grad=True
