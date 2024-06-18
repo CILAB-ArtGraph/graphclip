@@ -2,22 +2,25 @@ model:
   visual:
     model_name: vit_base_patch16_224
     pretrained: True
+    num_classes: 32
+    checkpoint: models/vit.pt
   gnn:
     name: GAT
     params:
-      in_channels: 512
+      in_channels: [-1, -1]
       hidden_channels: 128
       num_layers: 1
       add_self_loops: false
       v2: false
       dropout: 0.25
-      heads: 4
+      heads: 1
       concat: false
       act: Tanh
   params:
     out_channels: &num_classes 32
     hidden_dim: 128
     target_node: style
+    pca: data/interim/pca.pk
 dataset:
   train:
     name: &data_class AIxIADataset
@@ -113,5 +116,5 @@ clean_out_dir: true
 num_epochs: 50
 bar: true
 class_source:
-  f: data/processed/graph/0_5/train_graph.pt
+  f: data/processed/graph/aixia/0_5/train_graph.pt
   map_location: cuda

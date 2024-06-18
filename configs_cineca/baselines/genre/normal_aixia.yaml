@@ -2,22 +2,25 @@ model:
   visual:
     model_name: vit_base_patch16_224
     pretrained: True
+    num_classes: 32
+    checkpoint: models/vit.pt
   gnn:
     name: GAT
     params:
-      in_channels: 512
+      in_channels: [-1, -1]
       hidden_channels: 128
       num_layers: 1
       add_self_loops: false
       v2: false
       dropout: 0.25
-      heads: 4
+      heads: 1
       concat: false
       act: Tanh
   params:
     out_channels: &num_classes 18
     hidden_dim: 128
     target_node: genre
+    pca: data/interim/pca.pk
 dataset:
   train:
     name: &data_class AIxIADataset
