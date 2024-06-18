@@ -8,6 +8,5 @@ pruner:
   source: data/processed/normal/artgraph_clip_multitask/train.csv
   mapping_kwargs: 
     names: [idx, name]
-  sample: .5
   random_state: 42
-out_dir: data/processed/graph/aixia/0_5
+out_dir: data/processed/graph/aixia/1_0
