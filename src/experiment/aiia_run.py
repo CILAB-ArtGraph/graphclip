@@ -16,8 +16,14 @@ class AIxIARun(CLIPRun):
 
     def _init_model(self) -> AIxIAModel:
         model_params = deepcopy(self.parameters).get(ParameterKeys.MODEL)
-        vit = create_model(**model_params.get(ParameterKeys.VISUAL))
-        vit.reset_classifier(model_params.get(ParameterKeys.PARAMS).get("hidden_dim"))
+        visual_params = model_params.get(ParameterKeys.VISUAL)
+        checkpoint_pth = visual_params.pop(ParameterKeys.CHECKPOINT, None)
+        vit = create_model(**visual_params)
+        if checkpoint_pth:
+            state_dict = torch.load(checkpoint_pth, map_location=self.device)
+            print("loading state dict for vit")
+            vit.load_state_dict(state_dict)
+            vit.reset_classifier(num_classes=0)
         gnn_model = self.__init_gnn()
         return AIxIAModel(
             vit=vit,

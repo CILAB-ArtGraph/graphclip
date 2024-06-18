@@ -23,19 +23,20 @@ class VisFeatEncoder(IntEnum):
 
 
 class FileMapping(utils.StrEnum):
-    MAPPING = 'mapping'
-    RAW = 'raw'
-    MAPPING_SUFFIX = '_entidx2name'
-    RELATIONS = 'relations'
+    MAPPING = "mapping"
+    RAW = "raw"
+    MAPPING_SUFFIX = "_entidx2name"
+    RELATIONS = "relations"
 
 
 class ArtGraph(InMemoryDataset):
     def __init__(
-            self, root,
-            vis_feats_root,
-            label_feats_root=None,
-            labels=LabelEncoder.OPEN_CLIP,
-            vis_feats=VisFeatEncoder.OPEN_CLIP,
+        self,
+        root,
+        vis_feats_root,
+        label_feats_root=None,
+        labels=LabelEncoder.OPEN_CLIP,
+        vis_feats=VisFeatEncoder.OPEN_CLIP,
     ):
         self.labels = labels
         self.vis_feats = vis_feats
@@ -47,58 +48,77 @@ class ArtGraph(InMemoryDataset):
         assert self.vis_feats in list(VisFeatEncoder)
         super().__init__(root, transform=None, pre_transform=None)
         self.data, self.slices = torch.load(self.processed_paths[0])
-        for f in os.listdir(fr'{root}/processed'):
-            os.remove(fr'{root}/processed/{f}')
-        os.rmdir(fr'{root}/processed')
+        for f in os.listdir(rf"{root}/processed"):
+            os.remove(rf"{root}/processed/{f}")
+        os.rmdir(rf"{root}/processed")
 
     @property
     def raw_dir(self):
-        return os.path.join(self.root, 'raw')
+        return os.path.join(self.root, "raw")
 
     @property
     def raw_file_names(self):
         file_names = [
-            'node-feat', 'node-label', 'relations', 'split',
-            'num-node-dict.csv'
+            "node-feat",
+            "node-label",
+            "relations",
+            "split",
+            "num-node-dict.csv",
         ]
 
         return file_names
 
     @property
     def processed_file_names(self):
-        return 'none.pt'
+        return "none.pt"
 
     def download(self):
         return
 
+    def get_open_clip_feats(self):
+        features = torch.empty(size=(116475, 512))
+        mapping = pd.read_csv(
+            f"{self.root}/{FileMapping.MAPPING.value}/artwork{FileMapping.MAPPING_SUFFIX.value}.csv",
+            header=None,
+        )
+        for ix, name in tqdm(mapping.values):
+            name = name[:-4] + ".safetensors"
+            features[ix] = utils.load_tensor(
+                f"{self.vis_feats_root}/{name}", key="image"
+            )
+        return features
+
+    def get_timm_vit_feats(self):
+        return torch.from_numpy(
+            pd.read_csv(self.vis_feats_root, header=None, dtype=np.float32).values
+        )
+
     def __get_artwork_features(self):
         print("Getting artwork features")
-        features = torch.empty(size=(116475, 512))
-        mapping = pd.read_csv(f'{self.root}/{FileMapping.MAPPING.value}/artwork{FileMapping.MAPPING_SUFFIX.value}.csv',
-                              header=None)
-        for ix, name in tqdm(mapping.values):
-            name = name[:-4] + '.safetensors'
-            features[ix] = utils.load_tensor(f'{self.vis_feats_root}/{name}', key='image')
-        return features
+        if self.vis_feats == VisFeatEncoder.OPEN_CLIP:
+            return self.get_open_clip_feats()
+        if self.vis_feats == VisFeatEncoder.TIMM_VIT:
+            return self.get_timm_vit_feats()
 
     def __get_node_types(self, exceptions: dict):
         base = list(
             filter(
-                lambda x: x != 'artwork', map(
-                    lambda x: x[:-len(FileMapping.MAPPING_SUFFIX.value)],
-                    os.listdir(f'{self.root}/{FileMapping.MAPPING.value}')
-                )
+                lambda x: x != "artwork",
+                map(
+                    lambda x: x[: -len(FileMapping.MAPPING_SUFFIX.value)],
+                    os.listdir(f"{self.root}/{FileMapping.MAPPING.value}"),
+                ),
             )
         )
-        return list(map(lambda x: exceptions.get(x, x).split('_')[0], base))
+        return list(map(lambda x: exceptions.get(x, x).split("_")[0], base))
 
     def process(self):
         data = pyg.data.HeteroData()
 
         # get artwork visual features
-        data['artwork'].x = self.__get_artwork_features()
+        data["artwork"].x = self.__get_artwork_features()
 
-        path = os.path.join(self.raw_dir, 'num-node-dict.csv')
+        path = os.path.join(self.raw_dir, "num-node-dict.csv")
         num_nodes_df = pd.read_csv(path)
         exceptions = {"training": "training_node"}
         num_nodes_df.rename(columns=exceptions, inplace=True)
@@ -106,31 +126,39 @@ class ArtGraph(InMemoryDataset):
 
         # get label features
         if self.labels == LabelEncoder.SCALAR:
-            for feature, node_type in enumerate(filter(lambda x: x != 'artwork', num_nodes_df.columns)):
+            for feature, node_type in enumerate(
+                filter(lambda x: x != "artwork", num_nodes_df.columns)
+            ):
                 ones = [feature + 1] * num_nodes_df[node_type].tolist()[0]
                 data_tensor = torch.tensor(ones)
-                data_tensor = torch.reshape(data_tensor, (num_nodes_df[node_type].tolist()[0], 1))
+                data_tensor = torch.reshape(
+                    data_tensor, (num_nodes_df[node_type].tolist()[0], 1)
+                )
                 data[node_type].x = data_tensor.type(torch.FloatTensor)
         elif self.labels == LabelEncoder.ONE_HOT:
-            for node_type in filter(lambda x: x != 'artwork', num_nodes_df.columns):
+            for node_type in filter(lambda x: x != "artwork", num_nodes_df.columns):
                 data[node_type].x = torch.eye(num_nodes_df[node_type].tolist()[0])
         elif self.labels == LabelEncoder.OPEN_CLIP:
-            for nodes_type in filter(lambda x: x != 'artwork', num_nodes_df.columns):
+            for nodes_type in filter(lambda x: x != "artwork", num_nodes_df.columns):
                 print(f"Making {nodes_type} node")
-                data[nodes_type].x = utils.load_tensor(file=f'{self.label_feats_root}/{nodes_type}.safetensors',
-                                                       key='embeddings',
-                                                       framework='pt',
-                                                       device='cpu')
+                data[nodes_type].x = utils.load_tensor(
+                    file=f"{self.label_feats_root}/{nodes_type}.safetensors",
+                    key="embeddings",
+                    framework="pt",
+                    device="cpu",
+                )
 
         # add edges
-        for edge_type in os.listdir(fr'{self.raw_dir}/relations'):
+        for edge_type in os.listdir(rf"{self.raw_dir}/relations"):
             print(f"Doing {edge_type} edge")
             sub, verb, obj = edge_type.split("___")
-            path = fr'{self.raw_dir}/relations/{edge_type}/edge.csv'
+            path = rf"{self.raw_dir}/relations/{edge_type}/edge.csv"
             edge_index = pd.read_csv(path, header=None, dtype=np.int64).values
-            edge_index = torch.from_numpy(edge_index).t().contiguous().type(torch.LongTensor)
-            if obj == 'training':
-                obj = 'training_node'
+            edge_index = (
+                torch.from_numpy(edge_index).t().contiguous().type(torch.LongTensor)
+            )
+            if obj == "training":
+                obj = "training_node"
             data[(sub, verb, obj)].edge_index = edge_index
 
         if self.pre_transform is not None:
@@ -140,5 +168,4 @@ class ArtGraph(InMemoryDataset):
 
     @property
     def num_features(self):
-        return self.data['artist'].x.shape[1]
-
+        return self.data["artist"].x.shape[1]
