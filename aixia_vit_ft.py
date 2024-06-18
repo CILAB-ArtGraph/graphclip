@@ -138,7 +138,7 @@ if __name__ == "__main__":
         return best_model
 
     #if the model fine tuned on the head layer is not present into the directory
-    if 'vit_just_head.pt' not in os.listdir():
+    if 'vit_just_head.pt' not in os.listdir("models"):
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=1e-3)
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', min_lr = 1e-6, verbose = True, factor = .1, patience = 1,
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     for p in model.norm.parameters():
         p.requires_grad=True
 
-    if 'vit.pt' not in os.listdir(): 
+    if 'vit.pt' not in os.listdir("models"): 
         optimizer = optim.Adam(best_model_head.parameters(), lr=1e-3)
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', min_lr = 1e-6, verbose = True, factor = .1, patience = 1,
                                                 threshold = 1e-3)
@@ -220,5 +220,5 @@ if __name__ == "__main__":
     if not os.path.exists(node_feat_dir):
         os.makedirs(node_feat_dir)
 
-    x_df = pd.DataFrame(x_num)
+    x_df = pd.DataFrame(x_num_128)
     x_df.to_csv(f"{node_feat_dir}/node-feat-vit-fine-tuning.csv", index=False, header=False)
