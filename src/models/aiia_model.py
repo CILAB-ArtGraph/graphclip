@@ -14,18 +14,32 @@ class AIxIAModel(Module):
         metadata,
         out_channels,
         hidden_dim=128,
+        num_layers: int = 1,
         target_node: str = "style",
     ) -> None:
         super().__init__()
         self.pca = self.init_pca(pca)
         self.metadata = metadata
         self.target_node = target_node
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
+        self.out_channels = out_channels
         self.vit = vit
         self.gnn = to_hetero(gnn, self.metadata)
+        self.seq = self.init_sequential()
         self.head = torch.nn.Linear(
-            in_features=(hidden_dim + (hidden_dim * out_channels)),
+            in_features=self.seq[-2].out_features,
             out_features=out_channels,
         )
+
+    def init_sequential(self):
+        in_feats = self.hidden_dim + (self.hidden_dim * self.out_channels)
+        layers = []
+        for _ in range(self.num_layers):
+            layers.append(torch.nn.Linear(in_features=in_feats, out_features=in_feats // 2))
+            layers.append(torch.nn.LeakyReLU(negative_slope=0.2))
+            in_feats = in_feats // 2
+        return torch.nn.Sequential(*layers)
 
     def init_pca(self, pca):
         return pca if isinstance(pca, PCA) else joblib.load(pca)
@@ -43,4 +57,4 @@ class AIxIAModel(Module):
             .repeat(img_feats.size(0), 1)
         )
         x = torch.cat([img_feats, nodes], axis=1).to(img_feats.device)
-        return self.head(x)
+        return self.head(self.seq(x))
