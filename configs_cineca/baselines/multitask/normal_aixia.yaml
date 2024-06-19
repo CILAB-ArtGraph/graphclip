@@ -22,6 +22,7 @@ model:
     out_channels:
       style: 32 
       genre: 18 
+    num_layers: 5
     pca: data/interim/pca.pk
     return_dict: True
 dataset:

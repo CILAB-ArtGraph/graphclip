@@ -20,6 +20,7 @@ model:
     out_channels: &num_classes 18
     hidden_dim: 128
     target_node: genre
+    num_layers: 5
     pca: data/interim/pca.pk
 dataset:
   train:

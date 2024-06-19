@@ -21,6 +21,7 @@ model:
     hidden_dim: 128
     target_node: style
     pca: data/interim/pca.pk
+    num_layers: 5
 dataset:
   train:
     name: &data_class AIxIADataset
