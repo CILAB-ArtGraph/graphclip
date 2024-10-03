@@ -309,7 +309,7 @@ class CLIPRun(Run):
     def load_state_dict(self):
         out_dir = self.parameters.get(ParameterKeys.OUT_DIR)
         if os.path.exists(f"{out_dir}/ParameterKeys.MODEL.pt"):
-            print("loading state dict")
+            print(f"loading state dict from {out_dir}/ParameterKeys.MODEL.pt")
             state_dict = torch.load(
                 f"{out_dir}/ParameterKeys.MODEL.pt",
                 map_location=self.device,
