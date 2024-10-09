@@ -32,7 +32,7 @@ class AIxIAMultiTaskRun(CLIPMultitaskRun):
             gnn=gnn_model,
             metadata=self.graph.metadata(),
             **model_params.get(ParameterKeys.PARAMS, {}),
-        )
+        ).to(self.device)
 
     def __init_gnn(self) -> BasicGNN:
         gnn_params = deepcopy(
