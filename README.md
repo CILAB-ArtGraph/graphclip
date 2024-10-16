@@ -66,4 +66,3 @@ pip install torch_geometric
 pip install nlpaug nltk
 pip install -r requirements.txt
 ```
->>>>>>> e5c7ea7 (add readme and requirements)
