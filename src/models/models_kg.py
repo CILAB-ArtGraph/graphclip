@@ -198,7 +198,10 @@ class NewMultiModalSingleTaskVit(nn.Module):
         super().__init__()
 
         self.vit = create_model("vit_base_patch16_224", pretrained=True)
-
+        for p in self.vit.parameters():
+            p.requires_grad = False
+        for p in self.vit.blocks[-1].parameters():
+            p.requires_grad = True
         self.classifier = nn.Sequential(
             nn.Dropout(dropout),
             nn.Linear(768 + emb_size, num_class))
@@ -221,6 +224,10 @@ class NewMultiModalMultiTaskViT(nn.Module):
 
         self.vit = create_model("vit_base_patch16_224", pretrained=True)
         len_last = self.vit.head.in_features
+        for p in self.vit.parameters():
+            p.requires_grad = False
+        for p in self.vit.blocks[-1].parameters():
+            p.requires_grad = True
 
         self.class_style = nn.Sequential(
             nn.Dropout(dropout),
