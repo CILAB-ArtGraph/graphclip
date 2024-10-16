@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # graphclip
 A short description of the project.
 
